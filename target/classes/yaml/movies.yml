@@ -1,0 +1,55 @@
+movies:
+  - id: -1
+    stock: 100
+    price: 3.50
+    title: "The Crinj Tri-Tachyon"
+    releaseDate: "2020-04-20"
+    genre: "Testing"
+    description: "Movie about the crinj Tri-Tachyon Corporation."
+    actors:
+      - "Crinj Tri-Tach Employee #21"
+      - "Crinj Tri-Tach Employee #495"
+      - "Hegemony Hive Scum :smile:"
+    directors:
+      - "Some guy; don't worry about it"
+      - "[redacted]"
+    categories:
+      - "In-Store Location 1"
+      - "Crinj Compilation"
+      - "Cringe Compilation"
+      - "\"Jerry, why do we have this?\""
+
+  - id: -2
+    stock: 200
+    price: 8.99
+    title: "[[Original Movie Name]]"
+    releaseDate: "2020-04-20"
+    genre: "Testing"
+    description: "A completely original movie.  Will make you cry.  Guaranteed.  I'm not giving you your money back though."
+    actors:
+      - "Yamame Kurodani"
+      - "Gengetsu"
+      - "Seiga Kaku"
+    directors:
+      - "Patchouli Knowledge"
+      - "Shinki"
+    categories:
+      - "In-Store Location 2"
+      - "idk man"
+
+  - id: -3
+    stock: 1
+    price: 8.99
+    title: "[[Original Movie Name]]"
+    releaseDate: "2020-04-20"
+    genre: "Test Genre"
+    description: "Another completely original movie with a totally different plot."
+    actors:
+      - "Hyacinth"
+      - "Amaryllis"
+      - "Lily"
+      - "Gengetsu"
+    directors:
+      - "Shinki"
+    categories:
+      - "\"Jerry, why do we have this?\""

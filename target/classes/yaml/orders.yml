@@ -1,0 +1,18 @@
+orders:
+  - orderID: -1
+    movies: [-1]
+    email: "RealPerson@RealDomain.gov"
+    orderDate: "2021-01-01"
+    state: "Await Payment"
+
+  - orderID: -2
+    movies: [-1, -3]
+    email: "BenDover@Tri.Tachyon.org"
+    orderDate: "2021-01-02"
+    state: "Await Shipment"
+
+  - orderID: -3
+    movies: [-2, -3]
+    email: "AMargatroid@gmail.com"
+    orderDate: "2020-12-25"
+    state: "Fulfilled"

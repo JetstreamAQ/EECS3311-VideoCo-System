@@ -49,7 +49,7 @@ public class RegisterCustomer extends Register {
             return validateRetCode;
 
         //verifying address format
-        if (additionalInfo[0].matches("\\d+ [a-z A-Z]+"))
+        if (additionalInfo[0].matches("\\d+ [a-z A-Z.]+"))
             newCustomer.setStreet(additionalInfo[0]);
         else
             return 8;

@@ -118,7 +118,7 @@ public class ModifyUserDB {
                 return 2;
 
             //verify the street
-            if (additionalInfo[0].matches("\\d+ [a-z A-Z]+"))
+            if (additionalInfo[0].matches("\\d+ [a-z A-Z.]+"))
                 modCust.setStreet(additionalInfo[0]);
             else
                 return 8;

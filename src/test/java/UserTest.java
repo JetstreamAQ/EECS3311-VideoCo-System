@@ -303,7 +303,7 @@ public class UserTest {
         Assert.assertNull(invalidUser);
     }
 
-    @Test //TODO: Consider testing for invalid POSTAL CODE; PROVINCE CODE; EXTENSION NUMBER; AND TIMEZONE
+    @Test
     public void test_modifyUserDB() {
         String[] basicInfo = {
                 "Some",
@@ -335,6 +335,7 @@ public class UserTest {
         int invalidEmail = ModifyUserDB.modify("SomeImportantPerson@gmail.com", basicInfo, additionalInfo);
         Assert.assertEquals(1, invalidEmail);
         fetched = (Admin) users.getUser("OriginalUsername");
+        Assert.assertNotNull(fetched);
         basicInfo[3] = "SomeImportantPerson@gmail.com";
 
         //Checking if we can change the username to an already existing one
@@ -436,5 +437,22 @@ public class UserTest {
         Assert.assertEquals(0, mod);
         remove = ModifyUserDB.removeUser("SomeImportantPerson@gmail.com");
         Assert.assertTrue(remove);
+    }
+
+    @Test
+    public void test_invalid_register_email() {
+        String[] basicInfo = {
+                "Doremy",
+                "Sweet",
+                "SweetDreamSheep",
+                "Not an email",
+                "ArbitraryPassword@!2345"
+        };
+        String[] additionalInfo = {"GMT+12:00"};
+        Register reg = new RegisterEmployee();
+        int invalidEmail = reg.registerUser(basicInfo, additionalInfo, "Admin");
+        Assert.assertEquals(10, invalidEmail);
+        basicInfo[3] = "DoremySweet@gmail.com";
+
     }
 }

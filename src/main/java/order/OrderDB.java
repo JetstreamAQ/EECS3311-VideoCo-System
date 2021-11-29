@@ -93,6 +93,7 @@ public class OrderDB {
         if (orderDB.containsValue(order))
             return -1;
 
+        //TODO: write up test which covers this block here
         if (orderDB.containsKey(order.getOrderID())) {
             long maxId = 0;
             ArrayList<Long> usedIDs = new ArrayList<>();

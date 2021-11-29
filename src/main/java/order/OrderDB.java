@@ -88,7 +88,7 @@ public class OrderDB {
      * @param order the order to add to the DB
      * @return the ID of the added order; else returns -1
      */
-    public long addOrder(Order order) { //TODO: return orderID
+    public long addOrder(Order order) {
         //Check if order exists in the DB or if the orderID already exists
         if (orderDB.containsValue(order))
             return -1;

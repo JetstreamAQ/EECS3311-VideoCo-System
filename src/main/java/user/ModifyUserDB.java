@@ -38,6 +38,7 @@ public class ModifyUserDB {
      *          5 - passed timezone is invalid
      *          6 - passed postal code is invalid
      *          7 - passed extension number is invalid
+     *          8 - passed address is invalid
      */
     public static int modify(String key, String[] baseInfo, String[] additionalInfo) {
         DBUser users = DBUser.getINSTANCE();
@@ -116,7 +117,11 @@ public class ModifyUserDB {
             if (additionalInfo.length != 3)
                 return 2;
 
-            modCust.setStreet(additionalInfo[0]);
+            //verify the street
+            if (additionalInfo[0].matches("\\d+ [a-z A-Z]+"))
+                modCust.setStreet(additionalInfo[0]);
+            else
+                return 8;
 
             //verify postal code
             if (additionalInfo[1].matches("^[A-Z]\\d[A-Z][ ]?\\d[A-Z]\\d$"))

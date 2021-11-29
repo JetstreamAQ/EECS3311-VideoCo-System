@@ -13,8 +13,9 @@ import java.util.ArrayList;
 import java.util.Calendar;
 
 public abstract class StoreHook {
-    private User currentUser;
+    protected User currentUser;
 
+    //TODO: Consider integrating login procedure here; ie-enter usr/pass -> create user object else throw exception
     public StoreHook(User currentUser) {
         this.currentUser = currentUser;
     }

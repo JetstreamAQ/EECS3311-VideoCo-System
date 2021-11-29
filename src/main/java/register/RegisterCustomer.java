@@ -48,13 +48,19 @@ public class RegisterCustomer extends Register {
         else
             return validateRetCode;
 
-        newCustomer.setStreet(additionalInfo[0]);
+        //verifying address format
+        if (additionalInfo[0].matches("\\d+ [a-z A-Z]+"))
+            newCustomer.setStreet(additionalInfo[0]);
+        else
+            return 8;
 
+        //verifying postal code format
         if (additionalInfo[1].matches("^[A-Z]\\d[A-Z][ ]?\\d[A-Z]\\d$"))
             newCustomer.setPostalCode(additionalInfo[1]);
         else
             return 7;
 
+        //verifying provence code is correct and exists in Canada
         if (super.provCodes.contains(additionalInfo[2]))
             newCustomer.setProvince(additionalInfo[2]);
         else

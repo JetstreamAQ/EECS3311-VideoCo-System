@@ -1,25 +1,62 @@
 !!user.Users
 users:
-- !!user.data.Cashier {FName: John, LName: Smith, email: JohnSmith@gmail.com, id: 1,
-  location: In-Store Location 1, password: CompanyPassword, username: JoeSmith}
-- !!user.data.Customer
-  FName: Bartholomew
-  LName: Roberts
-  amtOwed: 0.0
-  custOrders: []
-  email: BlackBart@NotAPirate.ca
-  loyaltyPoints: 0
-  password: SomePasswordOrSomething
-  postalCode: A1A 1A1
-  province: NB
-  street: 123 Real Place in Canada
-  username: BlackBart
-- !!user.data.WarehouseShippingTeam {FName: Brique, LName: Wahl, email: BriqueWahl123@yahoo.ca,
-  id: 3, isShipping: false, password: SolidPassword, username: Fortification123, warehouseLocation: 'ON'}
-- !!user.data.WarehouseShippingTeam {FName: Uniball, LName: Signo, email: idek@company.ca,
-  id: 4, isShipping: true, password: Secure, username: GelPen, warehouseLocation: 'ON'}
-- !!user.data.InventoryOperator {FName: Rayan, LName: Arroyo, email: ArroyoR@gmail.com,
-  extensionNum: '1234', id: 2, password: InventoryOperator, username: ExecutiveBusiness}
-- !!user.data.Admin {FName: Samuel, LName: Rodriguez, email: SamRodriguez@desperado.com,
-  id: 0, password: PasswordWithHighEntropy0!1@2#3$4%5^6&7*8(9)10, timeZone: GMT-7,
-  username: Jetstream}
+  - !!user.data.Admin
+    id: 0
+    FName: "Samuel"
+    LName: "Rodriguez"
+    username: "Jetstream"
+    email: "SamRodriguez@desperado.com"
+    password: "PasswordWithHighEntropy0!1@2#3$4%5^6&7*8(9)10"
+    timeZone: "GMT-7"
+
+  - !!user.data.Cashier
+    id: 1
+    FName: "John"
+    LName: "Smith"
+    username: "JoeSmith"
+    email: "JohnSmith@gmail.com"
+    password: "CompanyPassword"
+    location: "In-Store Location 1"
+
+  - !!user.data.Customer
+    FName: "Bartholomew"
+    LName: "Roberts"
+    username: "BlackBart"
+    email: "BlackBart@NotAPirate.ca"
+    password: "SomePasswordOrSomething"
+    street: "123 Real Place in Canada"
+    postalCode: "A1A 1A1"
+    province: "NB"
+    amtOwed: 0.0
+    loyaltyPoints: 0
+    custOrders: [ ]
+
+  - !!user.data.InventoryOperator
+    id: 2
+    FName: "Rayan"
+    LName: "Arroyo"
+    username: "ExecutiveBusiness"
+    email: "ArroyoR@gmail.com"
+    password: "InventoryOperator"
+    extensionNum: "1234"
+
+
+  - !!user.data.WarehouseShippingTeam
+    id: 3
+    FName: "Brique"
+    LName: "Wahl"
+    username: "Fortification123"
+    email: "BriqueWahl123@yahoo.ca"
+    password: "SolidPassword"
+    warehouseLocation: "ON"
+    isShipping: No
+
+  - !!user.data.WarehouseShippingTeam
+    id: 4
+    FName: "Uniball"
+    LName: "Signo"
+    username: "GelPen"
+    email: "idek@company.ca"
+    password: "Secure"
+    warehouseLocation: "ON"
+    isShipping: Yes

@@ -83,6 +83,13 @@ public class OrderDB {
     }
 
     /**
+     * Get a list of all orders currently in the system
+     *
+     * @return a list of all orders in the system
+     */
+    public ArrayList<Order> getOrders() {return orderArray;}
+
+    /**
      * Add an order to the DB and update the DB file
      *
      * @param order the order to add to the DB

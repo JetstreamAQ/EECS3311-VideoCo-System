@@ -453,6 +453,5 @@ public class UserTest {
         int invalidEmail = reg.registerUser(basicInfo, additionalInfo, "Admin");
         Assert.assertEquals(10, invalidEmail);
         basicInfo[3] = "DoremySweet@gmail.com";
-
     }
 }

@@ -186,6 +186,8 @@ public class MovieDB {
         return matches;
     }
 
+    public ArrayList<Movie> getMovies() {return movieArray;}
+
     /**
      * Set the stock count of the specified movie
      *

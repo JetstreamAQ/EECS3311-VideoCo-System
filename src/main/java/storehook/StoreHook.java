@@ -1,5 +1,6 @@
 package storehook;
 
+import login.Login;
 import movie.Movie;
 import movie.MovieDB;
 import order.Order;
@@ -16,8 +17,21 @@ public abstract class StoreHook {
     protected User currentUser;
 
     //TODO: Consider integrating login procedure here; ie-enter usr/pass -> create user object else throw exception
-    public StoreHook(User currentUser) {
-        this.currentUser = currentUser;
+    public StoreHook() {}
+
+    /**
+     * A mid-tier hook for Login.login(...)
+     *
+     * @param username the username of the user to log in as
+     * @param password the password of the user with the associated username
+     * @return true if login was successful; false otherwise
+     */
+    public boolean login(String username, String password) {
+        User logged = Login.login(username, password);
+        if (logged != null)
+            currentUser = logged;
+
+        return logged != null;
     }
 
     /**

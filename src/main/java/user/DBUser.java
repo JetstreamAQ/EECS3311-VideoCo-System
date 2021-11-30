@@ -93,6 +93,13 @@ public class DBUser {
     }
 
     /**
+     * Get a list of every registered user.
+     *
+     * @return a list of every registered user.
+     */
+    public ArrayList<User> getUsers() {return userArray;}
+
+    /**
      * adds a user with the appropriate data type to the userDB
      *
      * @param user the user to add to the DB

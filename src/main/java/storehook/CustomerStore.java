@@ -4,7 +4,6 @@ import movie.Movie;
 import movie.MovieDB;
 import order.OrderDB;
 import user.data.Customer;
-import user.data.User;
 
 import java.util.ArrayList;
 
@@ -14,7 +13,7 @@ public class CustomerStore extends StoreHook {
      */
     ArrayList<Movie> cart = new ArrayList<>();
 
-    public CustomerStore(User user) {super(user);}
+    public CustomerStore() {}
 
     /**
      * Adding a movie with the associated ID into the customer's cart.

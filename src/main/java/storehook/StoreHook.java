@@ -35,6 +35,11 @@ public abstract class StoreHook {
     }
 
     /**
+     * @return the currently logged in user
+     */
+    public User loggedUser() {return currentUser;}
+
+    /**
      * Given a user's cart---represented as an ArrayList of movies---create a new order containing their
      * added movies, and email.  Also assigns a unique order ID for them and an order state.
      *

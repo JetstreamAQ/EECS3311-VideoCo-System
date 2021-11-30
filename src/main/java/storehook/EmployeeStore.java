@@ -33,6 +33,28 @@ public class EmployeeStore extends StoreHook {
     }
 
     /**
+     * A mid-tier hook for Register objects.
+     *
+     * @param baseInfo An array of strings containing the basic information of a User; properties of User
+     * @param additionalInfo An array of string containing information to the respective data type of the user
+     * @param flag dictates what type of user is being registered
+     * @return  Both RegisterCustomer and RegisterEmployee return different integers based on execution result.  Please
+     *          refer to the relevant documentation for the respective object type.
+     *          Result of -20 if an admin account is not being made by the system.
+     *          Result of -30 if an employee account is being made by someone other than an Admin.
+     */
+    @Override
+    public int addUser(String[] baseInfo, String[] additionalInfo, String flag) {
+        if (!currentUser.getUsername().equals("00_SystemAccount") && flag.equals("Admin"))
+            return -20;
+
+        if (!(currentUser instanceof Admin) && !flag.equals("Customer"))
+            return -30;
+
+        return super.addUser(baseInfo, additionalInfo, flag);
+    }
+
+    /**
      * A mid-tier hook for ModifyUserDB.removeUser(...)
      *
      * @param email the email of the associated user to remove

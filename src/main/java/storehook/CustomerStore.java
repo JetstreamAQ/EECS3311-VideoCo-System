@@ -73,6 +73,24 @@ public class CustomerStore extends StoreHook {
     }
 
     /**
+     * A mid-tier hook for Register objects.
+     *
+     * @param baseInfo An array of strings containing the basic information of a User; properties of User
+     * @param additionalInfo An array of string containing information to the respective data type of the user
+     * @param flag dictates what type of user is being registered
+     * @return  Both RegisterCustomer and RegisterEmployee return different integers based on execution result.  Please
+     *          refer to the relevant documentation for the respective object type.
+     *          Result of -20 if the user tries to make an account besides an admin account.
+     */
+    @Override
+    public int addUser(String[] baseInfo, String[] additionalInfo, String flag) {
+        if (!flag.equals("Customer"))
+            return -20;
+
+        return super.addUser(baseInfo, additionalInfo, flag);
+    }
+
+    /**
      * A mid-tier hook for OrderDB.removeOrder(...); additional check included to ensure customer's cannot
      * cancel an order if it has already been fulfilled.
      *

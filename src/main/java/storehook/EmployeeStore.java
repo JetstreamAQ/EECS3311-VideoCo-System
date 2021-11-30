@@ -45,7 +45,7 @@ public class EmployeeStore extends StoreHook {
      */
     @Override
     public int addUser(String[] baseInfo, String[] additionalInfo, String flag) {
-        if (!currentUser.getUsername().equals("00_SystemAccount") && flag.equals("Admin"))
+        if (!currentUser.getUsername().equals("00_SystemAccount_00") && flag.equals("Admin"))
             return -20;
 
         if (!(currentUser instanceof Admin) && !flag.equals("Customer"))

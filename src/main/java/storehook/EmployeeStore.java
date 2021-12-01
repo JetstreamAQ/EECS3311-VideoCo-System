@@ -1,5 +1,6 @@
 package storehook;
 
+import login.Login;
 import movie.Movie;
 import movie.MovieDB;
 import order.Order;
@@ -7,6 +8,7 @@ import order.OrderDB;
 import user.DBUser;
 import user.ModifyUserDB;
 import user.data.Admin;
+import user.data.Employee;
 import user.data.User;
 
 import java.util.ArrayList;
@@ -14,6 +16,22 @@ import java.util.Arrays;
 
 public class EmployeeStore extends StoreHook {
     public EmployeeStore() {}
+
+    /**
+     * A mid-tier hook for Login.login(...)
+     *
+     * @param username the username of the user to log in as
+     * @param password the password of the user with the associated username
+     * @return true if login was successful; false otherwise
+     */
+    @Override
+    public boolean login(String username, String password) {
+        User logged = Login.login(username, password);
+        if (logged instanceof Employee)
+            currentUser = logged;
+
+        return currentUser != null;
+    }
 
     /**
      * A modified mid-tier hook for ModifyUserDB.modify(...) for employees.  Other accounts can only be modified if

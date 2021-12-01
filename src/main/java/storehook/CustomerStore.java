@@ -1,9 +1,11 @@
 package storehook;
 
+import login.Login;
 import movie.Movie;
 import movie.MovieDB;
 import order.OrderDB;
 import user.data.Customer;
+import user.data.User;
 
 import java.util.ArrayList;
 
@@ -14,6 +16,22 @@ public class CustomerStore extends StoreHook {
     ArrayList<Movie> cart = new ArrayList<>();
 
     public CustomerStore() {}
+
+    /**
+     * A mid-tier hook for Login.login(...)
+     *
+     * @param username the username of the user to log in as
+     * @param password the password of the user with the associated username
+     * @return true if login was successful; false otherwise
+     */
+    @Override
+    public boolean login(String username, String password) {
+        User logged = Login.login(username, password);
+        if (logged instanceof Customer)
+            currentUser = logged;
+
+        return currentUser != null;
+    }
 
     /**
      * Adding a movie with the associated ID into the customer's cart.

@@ -1,4 +1,3 @@
-import com.sun.org.apache.xpath.internal.operations.Or;
 import order.Order;
 import order.OrderDB;
 import org.junit.Assert;
@@ -141,5 +140,28 @@ public class OrderTest {
         //Checking that the order was successfully removed
         Order orderDNE = orders.getOrder(-4); //Also doubles as a test to see if we can get an order that DNE
         Assert.assertNull(orderDNE);
+    }
+
+    @Test
+    public void test_add_existing_id() {
+        newOrder.setOrderID(-3);
+        long succ = orders.addOrder(newOrder);
+        Assert.assertEquals(0, succ);
+
+        Order bonusOrder = new Order();
+        bonusOrder.setOrderID(-3);
+        bonusOrder.setEmail("ChefChef@yahoo.ca");
+        bonusOrder.setOrderDate(newOrder.getOrderDate());
+        bonusOrder.setMovies(new ArrayList<>());
+        bonusOrder.setState(newOrder.getState());
+        succ = orders.addOrder(bonusOrder);
+        Assert.assertEquals(1, succ);
+
+        boolean remove = orders.removeOrder(0);
+        Assert.assertTrue(remove);
+        newOrder.setOrderID(-4);
+
+        remove = orders.removeOrder(1);
+        Assert.assertTrue(remove);
     }
 }

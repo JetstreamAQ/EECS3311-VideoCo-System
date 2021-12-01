@@ -325,4 +325,36 @@ public class MovieDB {
         writeYAML();
         return 0;
     }
+
+    /**
+     * Set either the list of Actors, Directors or Categories of a specified movie depending on the passed
+     * flag.  This variant replaces the entire ArrayList of the relevant property.
+     *
+     * @param id the id of the moive
+     * @param flag the flag denoting which property list to set
+     *              - 0: actors
+     *              - 1: directors
+     *              - 2: categories
+     * @param properties the ArrayList of properties to replace the current one with
+     * @return  0 if the specified property has been set
+     *          1 if there exists no movie with the specified ID
+     * @throws IllegalArgumentException
+     *          when newString is null or an empty string; when !(0 <= flag <= 2); when propNum > propertyList.size()
+     */
+    public int setADC(int id, int flag, ArrayList<String> properties) {
+        if (properties == null || properties.size() == 0 || flag > 2 || flag < 0 || properties.contains(null) || properties.contains(""))
+            throw new IllegalArgumentException();
+
+        if (!movieDB.containsKey(id))
+            return 1;
+
+        switch(flag) {
+            case 0: movieDB.get(id).setActors(properties); break;
+            case 1: movieDB.get(id).setDirectors(properties); break;
+            case 2: movieDB.get(id).setCategories(properties); break;
+        }
+
+        writeYAML();
+        return 0;
+    }
 }

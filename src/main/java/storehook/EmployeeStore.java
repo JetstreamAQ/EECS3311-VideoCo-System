@@ -40,12 +40,12 @@ public class EmployeeStore extends StoreHook {
      * @param flag dictates what type of user is being registered
      * @return  Both RegisterCustomer and RegisterEmployee return different integers based on execution result.  Please
      *          refer to the relevant documentation for the respective object type.
-     *          Result of -20 if an admin account is not being made by the system.
+     *          Result of -20 if an admin account is being made
      *          Result of -30 if an employee account is being made by someone other than an Admin.
      */
     @Override
     public int addUser(String[] baseInfo, String[] additionalInfo, String flag) {
-        if (!currentUser.getUsername().equals("00_SystemAccount_00") && flag.equals("Admin"))
+        if (flag.equals("Admin"))
             return -20;
 
         if (!(currentUser instanceof Admin) && !flag.equals("Customer"))
@@ -138,8 +138,9 @@ public class EmployeeStore extends StoreHook {
      * @return true if the movie was successfully modified
      */
     public boolean modifyMovie(int[] is, double price, String[] trgd, String[][] adc) {
+        MovieDB movieDB = MovieDB.getINSTANCE();
         //Abort the modification process if the passed ID does not map to an existing movie
-        if (MovieDB.getINSTANCE().getMovie(is[0]) == null)
+        if (movieDB.getMovie(is[0]) == null)
             return false;
         Movie newMovie = null;
 
@@ -153,17 +154,17 @@ public class EmployeeStore extends StoreHook {
         }
 
         //Modifying the price and stock
-        Movie focus = MovieDB.getINSTANCE().getMovie(is[0]);
-        int priceSet = MovieDB.getINSTANCE().setPrice(is[0], newMovie.getPrice()),
-            stockSet = MovieDB.getINSTANCE().setStock(is[1], newMovie.getStock());
-        focus.setTitle(newMovie.getTitle());
-        focus.setReleaseDate(newMovie.getReleaseDate());
-        focus.setGenre(newMovie.getGenre());
-        focus.setDescription(newMovie.getDescription());
-        focus.setActors((ArrayList<String>) newMovie.getActors());
-        focus.setDirectors((ArrayList<String>) newMovie.getDirectors());
-        focus.setCategories((ArrayList<String>) newMovie.getCategories());
-        return priceSet == 0 && stockSet == 0;
+        int priceSet = movieDB.setPrice(is[0], newMovie.getPrice()),
+            stockSet = movieDB.setStock(is[1], newMovie.getStock()),
+            titleSet = movieDB.setTRGD(is[0], 0, newMovie.getTitle()),
+            releaseSet = movieDB.setTRGD(is[0], 1, newMovie.getReleaseDate()),
+            genreSet = movieDB.setTRGD(is[0], 2, newMovie.getGenre()),
+            descSet = movieDB.setTRGD(is[0], 2, newMovie.getDescription()),
+            actorSet = movieDB.setADC(is[0], 0, (ArrayList<String>) newMovie.getActors()),
+            directorSet = movieDB.setADC(is[0], 1, (ArrayList<String>) newMovie.getDirectors()),
+            categorySet = movieDB.setADC(is[0], 2, (ArrayList<String>) newMovie.getCategories());
+
+        return priceSet == 0 && stockSet == 0 && titleSet == 0 && releaseSet == 0 && genreSet == 0 && descSet == 0 && actorSet == 0 && directorSet == 0 && categorySet == 0;
     }
 
     /**

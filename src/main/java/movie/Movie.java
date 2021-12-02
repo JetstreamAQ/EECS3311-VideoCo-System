@@ -51,7 +51,7 @@ public class Movie {
         return  "Title: " + title + "\n" +
                 "Movie ID: " + id + "\n" +
                 "Copies in stock: " + stock + "\n" +
-                "Price: $" + price + "\n" +
+                "Price: $" + String.format("%,.2f", price) + "\n" +
                 "Release Date: " + releaseDate + "\n" +
                 "Genre: " + genre + "\n" +
                 "Description: " + description + "\n" +

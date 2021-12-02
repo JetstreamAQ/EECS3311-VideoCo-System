@@ -10,11 +10,6 @@ import user.data.User;
 import java.util.ArrayList;
 
 public class CustomerStore extends StoreHook {
-    /**
-     * The customer's cart
-     */
-    ArrayList<Movie> cart = new ArrayList<>();
-
     public CustomerStore() {}
 
     /**
@@ -31,34 +26,6 @@ public class CustomerStore extends StoreHook {
             currentUser = logged;
 
         return currentUser != null;
-    }
-
-    /**
-     * Adding a movie with the associated ID into the customer's cart.
-     *
-     * @param id the ID of the movie to be added to the cart.
-     * @return true if the movies was successfully added; false otherise.
-     */
-    public boolean addMovieToCart(int id) {
-        if (MovieDB.getINSTANCE().getMovie(id) == null)
-            return false;
-
-        cart.add(MovieDB.getINSTANCE().getMovie(id));
-        return true;
-    }
-
-    /**
-     * Removing the movie with the associated ID from the customer's cart
-     *
-     * @param id the ID of the movie to be removed from the cart.
-     * @return true if the movie has been removed; false otherwise---especially if the movie is not in the cart.
-     */
-    public boolean removeMovieFromCart(int id) {
-        if (!cart.contains(MovieDB.getINSTANCE().getMovie(id)))
-            return false;
-
-        cart.remove(MovieDB.getINSTANCE().getMovie(id));
-        return true;
     }
 
     /**

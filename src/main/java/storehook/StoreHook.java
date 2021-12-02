@@ -16,7 +16,11 @@ import java.util.Calendar;
 public abstract class StoreHook {
     protected User currentUser;
 
-    //TODO: Consider integrating login procedure here; ie-enter usr/pass -> create user object else throw exception
+    /**
+     * The customer's cart
+     */
+    ArrayList<Movie> cart = new ArrayList<>();
+
     public StoreHook() {}
 
     /**
@@ -118,6 +122,36 @@ public abstract class StoreHook {
     public ArrayList<Movie> searchMovies(String search, int flag) {
         return MovieDB.getINSTANCE().getMovie(search, flag);
     }
+
+    /**
+     * Adding a movie with the associated ID into the customer's cart.
+     *
+     * @param id the ID of the movie to be added to the cart.
+     * @return true if the movies was successfully added; false otherise.
+     */
+    public boolean addMovieToCart(int id) {
+        if (MovieDB.getINSTANCE().getMovie(id) == null)
+            return false;
+
+        cart.add(MovieDB.getINSTANCE().getMovie(id));
+        return true;
+    }
+
+    /**
+     * Removing the movie with the associated ID from the customer's cart
+     *
+     * @param id the ID of the movie to be removed from the cart.
+     * @return true if the movie has been removed; false otherwise---especially if the movie is not in the cart.
+     */
+    public boolean removeMovieFromCart(int id) {
+        if (!cart.contains(MovieDB.getINSTANCE().getMovie(id)))
+            return false;
+
+        cart.remove(MovieDB.getINSTANCE().getMovie(id));
+        return true;
+    }
+
+    public ArrayList<Movie> getCart() {return cart;}
 
     /**
      * A mid-tier hook for OrderDB.getOrder(...)

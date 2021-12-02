@@ -60,3 +60,16 @@ users:
     password: "Secure"
     warehouseLocation: "ON"
     isShipping: Yes
+
+  - !!user.data.Customer
+    FName: "Bruh"
+    LName: "Bruh"
+    username: "test"
+    email: "test@domain.com"
+    password: "test"
+    street: "123 Real Place in Canada"
+    postalCode: "A1A 1A1"
+    province: "NB"
+    amtOwed: 0.0
+    loyaltyPoints: 0
+    custOrders: [ ]

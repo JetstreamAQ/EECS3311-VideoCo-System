@@ -3,6 +3,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.geometry.VPos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
@@ -12,13 +13,14 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
+import movie.Movie;
 import storehook.CustomerStore;
 import storehook.EmployeeStore;
 import storehook.StoreHook;
+import user.data.Customer;
 
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class App extends Application {
     private Stage focus;
@@ -294,7 +296,11 @@ public class App extends Application {
         login.setOnAction(actionEvent -> {
             hook = (employee) ? new EmployeeStore() : new CustomerStore();
             boolean result = hook.login(userField.getText(), pwField.getText());
-            loginResult.setText((!result) ? "Invalid credentials.  Try again." : "Login Successful!");
+            loginResult.setFill(Color.RED);
+            loginResult.setText((!result) ? "Invalid credentials.  Try again." : "Login Successful.\nPlease Wait as we log you in.");
+
+            if (result)
+                focus.setScene(mainMenu(employee));
         });
         grid.add(login, 1, 3);
 
@@ -304,11 +310,136 @@ public class App extends Application {
     private Scene mainMenu(boolean employee) {
         GridPane grid = createGrid();
 
-        Text text = new Text("Welcome," + hook.loggedUser().getFName() + " " + hook.loggedUser().getLName());
-        text.setFont(Font.font("SansSerif", FontWeight.MEDIUM, 24));
+        Text text = new Text("Welcome, " + hook.loggedUser().getFName() + " " + hook.loggedUser().getLName() + ".");
+        text.setFont(Font.font("SansSerif", FontWeight.MEDIUM, 18));
         grid.add(text, 0, 0, 3, 1);
 
-        return new Scene(grid, 360, 720);
+        Button logout = new Button("Logout");
+        logout.setOnAction(actionEvent -> {
+            hook = null;
+            focus.setScene(openScreen());
+        });
+        grid.add(logout, 0, 1);
+
+        Button editAccount = new Button("Edit/View Account Details");
+        grid.add(editAccount, 0, 2);
+
+        Button viewMovies = new Button("Browse Movies");
+        viewMovies.setOnAction(actionEvent -> focus.setScene(browseMovies(employee)));
+        grid.add(viewMovies, 0, 3);
+
+        return new Scene(grid, 400, 720);
+    }
+
+    /**
+     * Scene for browsing movies
+     *
+     * @param employee whether the current user is an employee or not
+     * @return Movie browsing scene
+     */
+    private Scene browseMovies(boolean employee) {
+        GridPane grid = createGrid();
+        AtomicReference<ArrayList<Movie>> results = new AtomicReference<>(hook.searchMovies("", 0));
+
+        Text text = new Text("Browse Movies");
+        text.setFont(Font.font("SansSerif", FontWeight.MEDIUM, 20));
+        grid.add(text, 0, 0, 3, 1);
+
+        //Movies
+        ScrollPane movieWindow = new ScrollPane();
+        movieWindow.setPrefSize(960, 480);
+        movieWindow.setContent(createMovieView(results.get(), false));
+        grid.add(movieWindow, 0, 2, 8, 1);
+
+        //back button
+        Button viewMovies = new Button("Back");
+        viewMovies.setOnAction(actionEvent -> focus.setScene(mainMenu(employee)));
+        grid.add(viewMovies, 0, 4);
+
+        //view cart button
+        Button cart = new Button("View Cart");
+        cart.setOnAction(actionEvent -> focus.setScene(viewCart()));
+        grid.add(cart, 0, 3);
+
+        //Search bar
+        TextField searchBar = new TextField();
+        grid.add(searchBar, 0, 1);
+
+        //Search option dropdown
+        Map<String, Integer> optionToFlag = new LinkedHashMap<>();
+        optionToFlag.put("Title", 0);
+        optionToFlag.put("Release Date", 1);
+        optionToFlag.put("Genre", 2);
+        optionToFlag.put("Description", 3);
+        optionToFlag.put("Actors", 4);
+        optionToFlag.put("Directors", 5);
+        optionToFlag.put("Categories", 6);
+        ObservableList<String> options = FXCollections.observableArrayList(optionToFlag.keySet());
+        ComboBox optionMenu = new ComboBox(options);
+        optionMenu.getSelectionModel().selectFirst();
+        grid.add(optionMenu, 1, 1);
+
+        //Search button
+        Button searchButton = new Button("Search");
+        searchButton.setOnAction(actionEvent -> {
+            results.set(hook.searchMovies(searchBar.getText(), optionToFlag.get(optionMenu.getValue().toString())));
+            movieWindow.setContent(createMovieView(results.get(), false));
+        });
+        grid.add(searchButton, 2, 1);
+
+        return new Scene(grid, 1280, 720);
+    }
+
+    private Scene viewCart() { //TODO: Allow for moving back to wherever we access our cart from
+        GridPane grid = createGrid();
+
+        Text text = new Text("Your Cart");
+        text.setFont(Font.font("SansSerif", FontWeight.MEDIUM, 20));
+        grid.add(text, 0, 0, 3, 1);
+
+        ScrollPane movieWindow = new ScrollPane();
+        movieWindow.setPrefSize(960, 480);
+        movieWindow.setContent(createMovieView(hook.getCart(), true));
+        grid.add(movieWindow, 0, 1, 5, 1);
+
+        return new Scene(grid, 1280, 720);
+    }
+
+    /**
+     * Creates a GridPane containing text results and action buttons for movie results
+     *
+     * @param movies ArrayList of movies to parse
+     * @param removeFlag whether the buttons will be for adding or removing a movie
+     * @return a GridPane :)
+     */
+    private GridPane createMovieView(ArrayList<Movie> movies, boolean removeFlag) {
+        GridPane textRes = createGrid();
+        textRes.setVgap(10);
+        for (int i = 0, pos = 0; i < movies.size(); i++, pos += 12) {
+            Text movie = new Text(movies.get(i).toString());
+
+            Button addToCart = new Button((removeFlag) ? "Remove" : "Add to Cart");
+            addToCart.setDisable(movies.get(i).getStock() == 0);
+            int finalI = i;
+            addToCart.setOnAction(actionEvent -> {
+                if (removeFlag) {
+                    hook.removeMovieFromCart(movies.get(finalI).getId());
+                    focus.setScene(viewCart());
+                } else if (!hook.getCart().contains(movies.get(finalI))) {
+                    hook.addMovieToCart(movies.get(finalI).getId());
+                }
+            });
+
+            Separator separator = new Separator();
+            separator.setMaxWidth(360);
+            separator.setValignment(VPos.TOP);
+
+            textRes.add(movie, 0, pos, 1, 10);
+            textRes.add(addToCart, 0, pos + 10);
+            textRes.add(separator, 0, pos + 11);
+        }
+
+        return textRes;
     }
 
     /**

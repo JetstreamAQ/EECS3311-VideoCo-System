@@ -626,13 +626,13 @@ public class App extends Application {
         });
         payment.add(shippingBilling, 0, 7, 3, 1);
 
-        //Make order //todo: move into window
+        //Make order
         Button placeOrder = new Button("Place Order");
         placeOrder.setDisable(hook.getCart().size() == 0);
         placeOrder.setOnAction(actionEvent -> {
             hook.makeOrder(hook.getCart());
         });
-        payment.add(placeOrder, 0, 10);
+        payment.add(placeOrder, 0, 16);
 
         return payment;
     }

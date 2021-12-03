@@ -208,6 +208,7 @@ public class MovieDB {
             return 2;
 
         movieDB.get(id).setStock(newStock);
+        writeYAML();
         return 0;
     }
 
@@ -231,6 +232,7 @@ public class MovieDB {
             return 2;
 
         movieDB.get(id).setPrice(newPrice);
+        writeYAML();
         return 0;
     }
 

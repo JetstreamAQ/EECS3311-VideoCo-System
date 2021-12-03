@@ -31,8 +31,8 @@ public class OrderTest {
         Assert.assertNotNull(order);
 
         //Testing if the correct properties were loaded for id: -1
-        Integer movieID = -1;
-        Assert.assertEquals(movieID, order.getMovies().get(0));
+        //Can't get longs working for some reason with assertEquals(...)
+        Assert.assertTrue(order.getMovies().get(0) == -1);
         Assert.assertEquals(1, order.getMovies().size());
         Assert.assertEquals("RealPerson@RealDomain.gov", order.getEmail());
         Assert.assertEquals("2021-01-01", order.getOrderDate());
@@ -162,6 +162,20 @@ public class OrderTest {
         newOrder.setOrderID(-4);
 
         remove = orders.removeOrder(1);
+        Assert.assertTrue(remove);
+    }
+
+    @Test
+    public void test_cancel_order() {
+        newOrder.setOrderID(-3);
+        long succ = orders.addOrder(newOrder);
+        Assert.assertEquals(0, succ);
+
+        boolean res = orders.cancelOrder(0);
+        Assert.assertTrue(res);
+        Assert.assertEquals("Cancelled", orders.getOrder(0).getState());
+
+        boolean remove = orders.removeOrder(0);
         Assert.assertTrue(remove);
     }
 }

@@ -155,6 +155,23 @@ public class OrderDB {
     }
 
     /**
+     * Sets the order state to be cancelled
+     *
+     * @param id the ID of the order to cancel
+     * @return true if the order was cancelled; false otherwise
+     */
+    public boolean cancelOrder(long id) {
+        if (!orderDB.containsKey(id))
+            return false;
+
+        if (!orderDB.get(id).getState().equals("Fulfilled"))
+            orderDB.get(id).setState("Cancelled");
+
+        writeYAML();
+        return true;
+    }
+
+    /**
      * removes the order with the associated ID from the DB.  This method is only to be used in testing
      * as to prevent the cluttering of the DB file.
      *

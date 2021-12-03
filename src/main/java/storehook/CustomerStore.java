@@ -83,20 +83,6 @@ public class CustomerStore extends StoreHook {
     public ArrayList<Long> fetchCustOrders() {return ((Customer) currentUser).getCustOrders();}
 
     /**
-     * A mid-tier hook for OrderDB.removeOrder(...); additional check included to ensure customer's cannot
-     * cancel an order if it has already been fulfilled.
-     *
-     * @param id the ID of the order to cancel
-     * @return true if the order was cancelled; false otherwise.
-     */
-    public boolean cancelOrder(long id) {
-        if (OrderDB.getINSTANCE().getOrder(id).getState().equals("Fulfilled"))
-            return false;
-
-        return OrderDB.getINSTANCE().removeOrder(id);
-    }
-
-    /**
      * A mid-tier hook for Customer.getAmtOwed()
      *
      * @return returns the amount of money owed by the customer
@@ -115,71 +101,13 @@ public class CustomerStore extends StoreHook {
     }
 
     /**
-     * Process a payment for the current customer
-     *
-     * ########################################################################
-     * ###    FOR SIMULATION PURPOSES:  ASSUME CUSTOMER HAS ENOUGH MONEY    ###
-     * ########################################################################
-     *
-     * @param amt the amount owed
-     * @param billing customer billing information
-     * @return true if the payment was successfully made; otherwise returns false
-     */
-    public boolean makePayment(double amt, boolean billingIsShipping, String[] billing) {
-        //Ensuring that passed array sizes are correct
-        if (billingIsShipping && billing.length != 3)
-            return false;
-        else if (!billingIsShipping && billing.length != 6)
-            return false;
-
-        //Ensuring that the array contains the right amount of information
-        if (!billing[0].matches("\\d{16}")) //VERIFYING CARD NUMBER
-            return false;
-
-        if (!billing[1].matches("[01][0-9]/[0123][0-9]")) //VERIFYING EXPIRATION DATE
-            return false;
-
-        if (!billing[2].matches("\\d{3}")) //VERIFYING CCV NUMBER
-            return false;
-
-        if (!billingIsShipping && !billing[3].matches("\\d+ [a-z A-Z]+")) //VERIFYING STREET FORMAT
-            return false;
-
-        if (!billingIsShipping && !billing[4].matches("^[A-Z]\\d[A-Z][ ]?\\d[A-Z]\\d$")) //VERIFYING POSTAL CODE
-            return false;
-
-        ArrayList<String> provCodes = new ArrayList<>();
-        provCodes.add("NL");
-        provCodes.add("PE");
-        provCodes.add("NS");
-        provCodes.add("NB");
-        provCodes.add("QC");
-        provCodes.add("ON");
-        provCodes.add("MB");
-        provCodes.add("SK");
-        provCodes.add("AB");
-        provCodes.add("BC");
-        provCodes.add("YT");
-        provCodes.add("NT");
-        provCodes.add("NU");
-        if (!billingIsShipping && !provCodes.contains(billing[5])) //VERIFYING PROVINCE CODE
-            return false;
-
-        //Deducting the payment off of what the customer owes
-        double currentOwed = ((Customer) super.currentUser).getAmtOwed(),
-               newAmt = (currentOwed - amt > 0) ? currentOwed - amt : 0.0;
-        ((Customer) super.currentUser).setAmtOwed(newAmt);
-        return true;
-    }
-
-    /**
      * Process a payment for the current user making use of their available loyalty points
      *
      * @return true if the payment was successful; false otherwise
      */
     public boolean pointPayment() {
         int currentPoints = ((Customer) super.currentUser).getLoyaltyPoints();
-        if (currentPoints > 10)
+        if (currentPoints < 10)
             return false;
 
         ((Customer) super.currentUser).setLoyaltyPoints(currentPoints - 10);

@@ -102,7 +102,7 @@ public class VideoCoSys {
 
         //Getting today's date
         String year = Integer.toString(Calendar.getInstance().get(Calendar.YEAR)),
-               month = Integer.toString(Calendar.getInstance().get(Calendar.MONTH)),
+               month = Integer.toString(Calendar.getInstance().get(Calendar.MONTH) + 1),
                day = Integer.toString(Calendar.getInstance().get(Calendar.DAY_OF_MONTH)),
                today = year + "-" + month + "-" + day;
 

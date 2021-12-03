@@ -14,11 +14,17 @@ import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import movie.Movie;
+import movie.MovieDB;
+import order.Order;
 import storehook.CustomerStore;
 import storehook.EmployeeStore;
 import storehook.StoreHook;
+import user.data.Admin;
 import user.data.Customer;
+import user.data.InventoryOperator;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -255,7 +261,7 @@ public class App extends Application {
                 regResult.setText(
                         (res == 0) ? "Registration successful" :
                         (1 <= res && res <= 5) ? "Password must:\n- Be 8 characters long\n- Contain at least one lowercase & uppercase letter\n- One symbol\n- One number\n- No spaces " :
-                        (res == 7) ? "Postal code must be of the form \"[CAPITAL][number][CAPITAL] [number][CAPITAL][number]\"" :
+                        (res == 7) ? "Postal code must be of the form:\n\"[CAPITAL][number][CAPITAL] [number][CAPITAL][number]\"" :
                         (res == 9) ? "Username/Email already in use" :
                         (res == 10) ? "Passed E-mail isn't a valid email address" : "There was an error with one or more of your inputs."
                 );
@@ -330,11 +336,103 @@ public class App extends Application {
         Button editAccount = new Button("Edit/View Account Details");
         grid.add(editAccount, 0, 2);
 
+        Button viewOrders = new Button("View Orders");
+        viewOrders.setOnAction(actionEvent -> focus.setScene(viewOrders()));
+        grid.add(viewOrders, 0, 3);
+
         Button viewMovies = new Button("Browse Movies");
         viewMovies.setOnAction(actionEvent -> focus.setScene(browseMovies(employee)));
-        grid.add(viewMovies, 0, 3);
+        grid.add(viewMovies, 0, 4);
 
         return new Scene(grid, 400, 720);
+    }
+
+    private Scene viewOrders() {
+        GridPane grid = createGrid();
+
+        Text text = new Text("Placed Orders");
+        text.setFont(Font.font("SansSerif", FontWeight.MEDIUM, 24));
+        grid.add(text, 0, 0, 3, 1);
+
+        ScrollPane orderDetails = new ScrollPane();
+        orderDetails.setPrefSize(600, 500);
+        grid.add(orderDetails, 5, 1, 5, 1);
+
+        ObservableList<String> ids = FXCollections.observableArrayList();
+        if (hook instanceof CustomerStore) {
+            ArrayList<Long> orderIds = ((CustomerStore) hook).fetchCustOrders();
+            for (Long l : orderIds)
+                ids.add("Order #" + l);
+        } else if (hook instanceof EmployeeStore && (hook.loggedUser() instanceof Admin || hook.loggedUser() instanceof InventoryOperator)) {
+            ArrayList<Order> admin = ((EmployeeStore) hook).viewOrders();
+            for (Order o : admin)
+                ids.add("Order #" + o.getOrderID());
+        }
+        ListView<String> orders = new ListView<>(ids);
+        orders.setPrefSize(300, 500);
+        orders.setEditable(false);
+        grid.add(orders, 0, 1, 5, 1);
+
+        //View selected order button
+        Button seeOrder = new Button("View Order");
+        seeOrder.setOnAction(actionEvent -> {
+            if (orders.getSelectionModel().getSelectedItem() != null) {
+                GridPane temp = createGrid();
+
+                Text header = new Text(orders.getSelectionModel().getSelectedItem()); //NB: Number begins @ 7
+                header.setFont(Font.font("SansSerif", FontWeight.MEDIUM, 18));
+                temp.add(header, 0, 0, 3, 1);
+
+                long orderID = Long.parseLong(orders.getSelectionModel().getSelectedItem().substring(7));
+
+                Text orderDate = new Text("Date: " + hook.fetchOrder(orderID).getOrderDate());
+                temp.add(orderDate, 0, 1);
+
+                Text orderStatus = new Text("Status: " + hook.fetchOrder(orderID).getState());
+                temp.add(orderStatus, 0, 2);
+
+                Separator s1 = new Separator();
+                s1.setMaxWidth(450);
+                s1.setMinWidth(450);
+                temp.add(s1, 0, 3);
+
+                Button cancelButton = new Button("Cancel Order");
+                cancelButton.setDisable(hook.fetchOrder(orderID).getState().equals("Fulfilled") || hook.fetchOrder(orderID).getState().equals("Cancelled"));
+                cancelButton.setOnAction(actionEvent1 -> {
+                    cancelButton.setDisable(true);
+                    orderStatus.setText("Status: Cancelled");
+                    hook.cancelOrder(orderID);
+                });
+                temp.add(cancelButton, 0, 4);
+
+                Button editButton = new Button("Edit Order");
+                editButton.setDisable(hook.fetchOrder(orderID).getState().equals("Fulfilled"));
+                if (hook instanceof EmployeeStore)
+                    temp.add(editButton, 1, 5);
+
+                /*DISPLAYING MOVIE INFO START*/
+                ArrayList<Movie> associatedMovies = new ArrayList<>();
+                for (int id : hook.fetchOrder(orderID).getMovies())
+                    associatedMovies.add(MovieDB.getINSTANCE().getMovie(id));
+
+                ArrayList<Text> movies = new ArrayList<>();
+                for (Movie m : associatedMovies)
+                    movies.add(new Text(m.toString()));
+
+                for (int i = 0, offset = 6; i < movies.size(); i++, offset++)
+                    temp.add(movies.get(i), 0, offset);
+                /*DISPLAYING MOVIE INFO END*/
+                orderDetails.setContent(temp);
+            }
+        });
+        grid.add(seeOrder,0, 2);
+
+        //back button
+        Button viewMovies = new Button("Back");
+        viewMovies.setOnAction(actionEvent -> focus.setScene(mainMenu(hook instanceof EmployeeStore)));
+        grid.add(viewMovies, 0, 4);
+
+        return new Scene(grid, 1280, 720);
     }
 
     /**
@@ -396,7 +494,7 @@ public class App extends Application {
         return new Scene(grid, 1280, 720);
     }
 
-    private Scene viewCart() { //TODO: Allow for moving back to wherever we access our cart from
+    private Scene viewCart() {
         GridPane grid = createGrid();
 
         Text text = new Text("Cart and Payment");
@@ -534,8 +632,10 @@ public class App extends Application {
         payment.add(ccvField, 3, 3, 1, 1);
 
         //Expiration
-        Text expiration = new Text("Expiration (MM/YYYY)");
-        payment.add(expiration, 0, 4);
+        Text expMonth = new Text("Exp. Month (MM)");
+        Text expYear = new Text("Exp. Year (YY)");
+        payment.add(expMonth, 0, 4);
+        payment.add(expYear, 1, 4);
         TextField month = new TextField();
         month.setMaxWidth(150);
         TextField year = new TextField();
@@ -543,29 +643,41 @@ public class App extends Application {
         payment.add(month, 0, 5, 1, 1);
         payment.add(year, 1, 5, 1, 1);
 
+        //Use Loyalty Points
+        int targetLPAmt = ((Customer) hook.loggedUser()).getLoyaltyPoints();
+        RadioButton lpToggle = new RadioButton("Pay with 10 loyalty points instead. [Total: " + targetLPAmt + "]");
+        lpToggle.setOnAction(actionEvent -> {
+            cardField.setDisable(!cardField.isDisable());
+            month.setDisable(!month.isDisable());
+            year.setDisable(!year.isDisable());
+            ccvField.setDisable(!ccvField.isDisable());
+        });
+        lpToggle.setDisable(targetLPAmt < 10);
+        payment.add(lpToggle, 0, 6, 5, 1);
+
         //seperator between CC info and billing
         Separator separator2 = new Separator();
         separator2.setMaxWidth(500);
         separator2.setValignment(VPos.TOP);
-        payment.add(separator2, 0, 6, 5, 1);
+        payment.add(separator2, 0, 7, 5, 1);
 
         //Address
         Text address = new Text("Address");
-        payment.add(address, 0, 9, 1, 1);
+        payment.add(address, 0, 10, 1, 1);
         TextField addressField = new TextField();
         addressField.setMinWidth(300);
-        payment.add(addressField, 0, 10, 3, 1);
+        payment.add(addressField, 0, 11, 3, 1);
 
         //Postal code
         Text postal = new Text("Postal Code");
-        payment.add(postal, 0, 11, 1, 1);
+        payment.add(postal, 0, 12, 1, 1);
         TextField postalField = new TextField();
         postalField.setMaxWidth(150);
-        payment.add(postalField, 0, 12, 1, 1);
+        payment.add(postalField, 0, 13, 1, 1);
 
         //province code
         Text province = new Text("Province");
-        payment.add(province, 1, 11, 1, 1);
+        payment.add(province, 1, 12, 1, 1);
         Map<String, String> provToCode = new LinkedHashMap<>();
         provToCode.put("Newfoundland & Labrador", "NL");
         provToCode.put("Prince Edward Island", "PE");
@@ -582,13 +694,14 @@ public class App extends Application {
         provToCode.put("Nunavut", "NU");
         ObservableList<String> provinces = FXCollections.observableArrayList(provToCode.keySet());
         ComboBox provinceBox = new ComboBox(provinces);
-        payment.add(provinceBox, 1, 12, 1, 1);
+        provinceBox.getSelectionModel().selectFirst();
+        payment.add(provinceBox, 1, 13, 1, 1);
 
         //town/city
         Text cityTown = new Text("City/Town");
-        payment.add(cityTown,0, 13, 1, 1);
+        payment.add(cityTown,0, 14, 1, 1);
         TextField cityTownField = new TextField();
-        payment.add(cityTownField, 0, 14, 1, 1);
+        payment.add(cityTownField, 0, 15, 1, 1);
 
         //Toggle for shipping = billing
         RadioButton shippingBilling = new RadioButton("Billing Address the same as Shipping Address");
@@ -604,7 +717,7 @@ public class App extends Application {
 
                 addressField.setText("");
                 postalField.setText("");
-                provinceBox.setValue("");
+                provinceBox.getSelectionModel().selectFirst();
                 cityTownField.setText("");
             } else {
                 addressField.setDisable(true);
@@ -624,15 +737,45 @@ public class App extends Application {
                 cityTownField.setText(current.getCityTown());
             }
         });
-        payment.add(shippingBilling, 0, 7, 3, 1);
+        payment.add(shippingBilling, 0, 8, 3, 1);
+
+        //result text
+        Text result = new Text();
+        payment.add(result, 0, 18, 5, 1);
 
         //Make order
         Button placeOrder = new Button("Place Order");
         placeOrder.setDisable(hook.getCart().size() == 0);
         placeOrder.setOnAction(actionEvent -> {
-            hook.makeOrder(hook.getCart());
+            String[] billingInfo = {
+                    cardField.getText(),
+                    month.getText() + "/" + year.getText(),
+                    ccvField.getText(),
+                    addressField.getText(),
+                    postalField.getText(),
+                    cityTownField.getText(),
+                    provToCode.get(provinceBox.getValue().toString())
+            };
+
+            boolean paymentSucc = (lpToggle.isSelected()) ? ((CustomerStore) hook).pointPayment() : hook.makePayment(hook.loggedUser(), 0.0, billingInfo);
+
+            if (paymentSucc) {
+                try {
+                    hook.makeOrder(hook.loggedUser(), hook.getCart()); //TODO: mod so InventoryOperator can use this
+                    result.setFill(Color.BLUE);
+                    result.setText("Payment Successful; Order has been placed");
+                    placeOrder.setDisable(true);
+                } catch (IllegalArgumentException e) { //TODO: WHEN TESTING -- CHECK IF EXCEPTION IS THROWN
+                    result.setFill(Color.RED);
+                    result.setText("One or more of your items are now out of stock.");
+                    placeOrder.setDisable(true);
+                }
+            } else {
+                result.setFill(Color.RED);
+                result.setText((lpToggle.isSelected()) ? "You don't have enough loyalty points!" : "Error with payment.\nPlease check that the provided information is correct.\nEnsure that all information is formatted correctly.\nEg. Postal Codes are of the form \"A1A 1A1\".");
+            }
         });
-        payment.add(placeOrder, 0, 16);
+        payment.add(placeOrder, 0, 17);
 
         return payment;
     }

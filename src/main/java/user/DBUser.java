@@ -2,6 +2,7 @@ package user;
 
 import movie.Movies;
 import org.yaml.snakeyaml.Yaml;
+import user.data.Customer;
 import user.data.Employee;
 import user.data.User;
 
@@ -176,6 +177,38 @@ public class DBUser {
         writeYAML();
         return 0;
     }
+
+    /**
+     * Adds orders to the customer with the associated ID
+     *
+     * @param key the user/email of the customer in question
+     * @param id the order ID to add
+     */
+    public void addToCustOrder(String key, long id) {
+        if (getUser(key) != null && getUser(key) instanceof Customer) {
+            ArrayList<Long> temp = ((Customer) getUser(key)).getCustOrders();
+            temp.add(id);
+            ((Customer) getUser(key)).setCustOrders(temp);
+
+            writeYAML();
+        }
+    }
+
+    /*/**
+     * removes orders from the customer with the associated ID
+     *
+     * @param key the user/email of the customer in question
+     * @param id the order ID to remove
+     *\/
+    public void removeFromCustOrder(String key, long id) {
+        if (getUser(key) != null && getUser(key) instanceof Customer) {
+            ArrayList<Long> temp = ((Customer) getUser(key)).getCustOrders();
+            temp.remove(id);
+            ((Customer) getUser(key)).setCustOrders(temp);
+
+            writeYAML();
+        }
+    }*/
 
     /**
      * Checks among the list of users and finds each employee to check their ID to find the highest ID num value.

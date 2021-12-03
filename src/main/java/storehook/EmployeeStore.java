@@ -93,27 +93,6 @@ public class EmployeeStore extends StoreHook {
     public ArrayList<User> viewUsers() {return DBUser.getINSTANCE().getUsers();}
 
     /**
-     * A mid-tier hook for OrderDB.modOrder(...)
-     *
-     * @param id the id of the order to modify
-     * @param movies list of movies in the order
-     * @param information array of key information of the order
-     * @return true if the order was successfully modified; false otherwise
-     */
-    public boolean editOrder(long id, ArrayList<Integer> movies, String[] information) {
-        if (information.length != 3)
-            return false;
-
-        Order modOrder = new Order();
-        modOrder.setOrderID(id);
-        modOrder.setMovies(movies);
-        modOrder.setEmail(information[0]);
-        modOrder.setOrderDate(information[1]);
-        modOrder.setState(information[2]);
-        return OrderDB.getINSTANCE().modOrder(id, modOrder);
-    }
-
-    /**
      * A mid-tier hook for OrderDB.getOrders()
      *
      * @return a list of every order in the system.

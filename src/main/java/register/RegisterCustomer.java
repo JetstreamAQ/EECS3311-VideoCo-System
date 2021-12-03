@@ -30,7 +30,7 @@ public class RegisterCustomer extends Register {
     @Override
     public int registerUser(String[] baseInfo, String[] additionalInfo, String flag) {
         //Passed information must contain exactly everything a new user needs.
-        if (baseInfo.length != 5 || additionalInfo.length != 3)
+        if (baseInfo.length != 5 || additionalInfo.length != 4)
             return 6;
 
         Customer newCustomer = new Customer();
@@ -60,9 +60,11 @@ public class RegisterCustomer extends Register {
         else
             return 7;
 
+        newCustomer.setCityTown(additionalInfo[2]);
+
         //verifying provence code is correct and exists in Canada
-        if (super.provCodes.contains(additionalInfo[2]))
-            newCustomer.setProvince(additionalInfo[2]);
+        if (super.provCodes.contains(additionalInfo[3]))
+            newCustomer.setProvince(additionalInfo[3]);
         else
             return 8;
 

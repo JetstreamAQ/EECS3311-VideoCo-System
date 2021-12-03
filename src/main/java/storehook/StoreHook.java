@@ -76,6 +76,8 @@ public abstract class StoreHook {
             for (Movie m : movies)
                 movieDB.setStock(m.getId(), m.getStock() + 1);
         }
+
+        cart = new ArrayList<>();
         return orderID;
     }
 
@@ -151,7 +153,12 @@ public abstract class StoreHook {
         return true;
     }
 
+    /**
+     * @return user's cart
+     */
     public ArrayList<Movie> getCart() {return cart;}
+
+    //TODO: create MakeOrder (see: InventoryOperator and Customer requirements)
 
     /**
      * A mid-tier hook for OrderDB.getOrder(...)

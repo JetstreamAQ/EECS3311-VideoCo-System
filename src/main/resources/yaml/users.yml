@@ -24,6 +24,7 @@ users:
     username: "BlackBart"
     email: "BlackBart@NotAPirate.ca"
     password: "SomePasswordOrSomething"
+    cityTown: "idk"
     street: "123 Real Place in Canada"
     postalCode: "A1A 1A1"
     province: "NB"
@@ -39,7 +40,6 @@ users:
     email: "ArroyoR@gmail.com"
     password: "InventoryOperator"
     extensionNum: "1234"
-
 
   - !!user.data.WarehouseShippingTeam
     id: 3
@@ -67,6 +67,7 @@ users:
     username: "test"
     email: "test@domain.com"
     password: "test"
+    cityTown: "Real Location"
     street: "123 Real Place in Canada"
     postalCode: "A1A 1A1"
     province: "NB"

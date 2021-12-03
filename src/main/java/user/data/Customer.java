@@ -5,6 +5,7 @@ import java.util.ArrayList;
 public class Customer extends User {
     private String street,
                    postalCode,
+                   cityTown,
                    province;
     private double amtOwed;
     private int loyaltyPoints;
@@ -16,6 +17,9 @@ public class Customer extends User {
 
     public String getPostalCode() {return postalCode;}
     public void setPostalCode(String postalCode) {this.postalCode = postalCode;}
+
+    public String getCityTown() {return cityTown;}
+    public void setCityTown(String cityTown) {this.cityTown = cityTown;}
 
     public String getProvince() {return province;}
     public void setProvince(String province) {this.province = province;}

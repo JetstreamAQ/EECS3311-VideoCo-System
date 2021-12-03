@@ -76,6 +76,13 @@ public class CustomerStore extends StoreHook {
     }
 
     /**
+     * A mid-tier hook for grabbing the ArrayList of orderIDs associated with the current user
+     *
+     * @return ArrayList of long order IDs
+     */
+    public ArrayList<Long> fetchCustOrders() {return ((Customer) currentUser).getCustOrders();}
+
+    /**
      * A mid-tier hook for OrderDB.removeOrder(...); additional check included to ensure customer's cannot
      * cancel an order if it has already been fulfilled.
      *

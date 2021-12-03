@@ -114,7 +114,7 @@ public class ModifyUserDB {
             Customer modCust = new Customer();
             baseProperties(modCust, baseInfo);
 
-            if (additionalInfo.length != 3)
+            if (additionalInfo.length != 4)
                 return 2;
 
             //verify the street
@@ -129,9 +129,11 @@ public class ModifyUserDB {
             else
                 return 6;
 
+            modCust.setCityTown(additionalInfo[2]);
+
             //verify province code
-            if (provCodes.contains(additionalInfo[2]))
-                modCust.setProvince(additionalInfo[2]);
+            if (provCodes.contains(additionalInfo[3]))
+                modCust.setProvince(additionalInfo[3]);
             else
                 return 4;
 

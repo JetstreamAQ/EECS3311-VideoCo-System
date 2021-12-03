@@ -203,6 +203,7 @@ public class UserTest {
         String[] additionalInfo = {
                 "616 Former Hell Blvd.",
                 "C3C 3C3",
+                "Victoria",
                 "BC"
         };
 
@@ -401,6 +402,7 @@ public class UserTest {
         String[] customerInfo = {
                 "123 bruh rd.",
                 "D3D 3D3",
+                "City",
                 "NS"
         };
         regInfo = regCust.registerUser(basicInfo, customerInfo, "Customer");
@@ -451,6 +453,5 @@ public class UserTest {
         Register reg = new RegisterEmployee();
         int invalidEmail = reg.registerUser(basicInfo, additionalInfo, "Admin");
         Assert.assertEquals(10, invalidEmail);
-        basicInfo[3] = "DoremySweet@gmail.com";
     }
 }

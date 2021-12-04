@@ -99,18 +99,4 @@ public class CustomerStore extends StoreHook {
     public int getLoyaltyPoints() {
         return ((Customer) super.currentUser).getLoyaltyPoints();
     }
-
-    /**
-     * Process a payment for the current user making use of their available loyalty points
-     *
-     * @return true if the payment was successful; false otherwise
-     */
-    public boolean pointPayment() {
-        int currentPoints = ((Customer) super.currentUser).getLoyaltyPoints();
-        if (currentPoints < 10)
-            return false;
-
-        ((Customer) super.currentUser).setLoyaltyPoints(currentPoints - 10);
-        return true;
-    }
 }

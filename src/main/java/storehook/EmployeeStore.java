@@ -8,6 +8,7 @@ import order.OrderDB;
 import user.DBUser;
 import user.ModifyUserDB;
 import user.data.Admin;
+import user.data.Customer;
 import user.data.Employee;
 import user.data.User;
 
@@ -91,6 +92,23 @@ public class EmployeeStore extends StoreHook {
      * @return a list of every registered user---including test users.
      */
     public ArrayList<User> viewUsers() {return DBUser.getINSTANCE().getUsers();}
+
+    /**
+     * @param key the username/email of the customer to check
+     * @return true if there is a customer with the given email/username in the DB.
+     */
+    public boolean probeCustomer(String key) {return DBUser.getINSTANCE().getUser(key) != null && DBUser.getINSTANCE().getUser(key) instanceof Customer;}
+
+    /**
+     * @param key the username/email of the customer to fetch
+     * @return A customer object if there exists one with the given email/username; is null otherwise
+     */
+    public User fetchCustomer(String key) {
+        if (probeCustomer(key))
+            return DBUser.getINSTANCE().getUser(key);
+
+        return null;
+    }
 
     /**
      * A mid-tier hook for OrderDB.getOrders()

@@ -16,12 +16,15 @@ import javafx.stage.Stage;
 import movie.Movie;
 import movie.MovieDB;
 import order.Order;
+import order.state.Fulfilled;
+import order.state.OrderState;
 import storehook.CustomerStore;
 import storehook.EmployeeStore;
 import storehook.StoreHook;
 import user.data.Admin;
 import user.data.Customer;
 import user.data.InventoryOperator;
+import user.data.User;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -386,15 +389,21 @@ public class App extends Application {
                 long orderID = Long.parseLong(orders.getSelectionModel().getSelectedItem().substring(7));
 
                 Text orderDate = new Text("Date: " + hook.fetchOrder(orderID).getOrderDate());
-                temp.add(orderDate, 0, 1);
+                temp.add(orderDate, 0, 1, 3, 1);
 
                 Text orderStatus = new Text("Status: " + hook.fetchOrder(orderID).getState());
-                temp.add(orderStatus, 0, 2);
+                OrderState orderState = hook.fetchOrder(orderID).getOrderState();
+                if ((orderState instanceof Fulfilled) && ((Fulfilled) orderState).getReturned())
+                    orderStatus.setText("Status: Order Returned");
+                temp.add(orderStatus, 0, 2, 3, 1);
+
+                Text custEmail = new Text("Customer E-Mail: " + hook.fetchOrder(orderID).getEmail());
+                temp.add(custEmail, 0, 3, 3, 1);
 
                 Separator s1 = new Separator();
                 s1.setMaxWidth(450);
                 s1.setMinWidth(450);
-                temp.add(s1, 0, 3);
+                temp.add(s1, 0, 4, 3, 1);
 
                 Button cancelButton = new Button("Cancel Order");
                 cancelButton.setDisable(hook.fetchOrder(orderID).getState().equals("Fulfilled") || hook.fetchOrder(orderID).getState().equals("Cancelled"));
@@ -403,12 +412,12 @@ public class App extends Application {
                     orderStatus.setText("Status: Cancelled");
                     hook.cancelOrder(orderID);
                 });
-                temp.add(cancelButton, 0, 4);
+                temp.add(cancelButton, 0, 5, 1, 1);
 
                 Button editButton = new Button("Edit Order");
-                editButton.setDisable(hook.fetchOrder(orderID).getState().equals("Fulfilled"));
+                editButton.setDisable(orderState instanceof Fulfilled && ((Fulfilled) orderState).getReturned());
                 if (hook instanceof EmployeeStore)
-                    temp.add(editButton, 1, 5);
+                    temp.add(editButton, 1, 5, 1, 1);
 
                 /*DISPLAYING MOVIE INFO START*/
                 ArrayList<Movie> associatedMovies = new ArrayList<>();
@@ -419,18 +428,22 @@ public class App extends Application {
                 for (Movie m : associatedMovies)
                     movies.add(new Text(m.toString()));
 
-                for (int i = 0, offset = 6; i < movies.size(); i++, offset++)
-                    temp.add(movies.get(i), 0, offset);
+                for (int i = 0, offset = 7; i < movies.size(); i++, offset++)
+                    temp.add(movies.get(i), 0, offset, 3, 1);
                 /*DISPLAYING MOVIE INFO END*/
                 orderDetails.setContent(temp);
             }
         });
         grid.add(seeOrder,0, 2);
 
+        TextField search = new TextField();
+        grid.add(search, 0, 4);
+
+
         //back button
         Button viewMovies = new Button("Back");
         viewMovies.setOnAction(actionEvent -> focus.setScene(mainMenu(hook instanceof EmployeeStore)));
-        grid.add(viewMovies, 0, 4);
+        grid.add(viewMovies, 0, 5);
 
         return new Scene(grid, 1280, 720);
     }
@@ -463,6 +476,7 @@ public class App extends Application {
         //view cart button
         Button cart = new Button("View Cart");
         cart.setOnAction(actionEvent -> focus.setScene(viewCart()));
+        cart.setDisable(!(hook.loggedUser() instanceof Admin) && !(hook.loggedUser() instanceof InventoryOperator) && !(hook.loggedUser() instanceof Customer));
         grid.add(cart, 0, 3);
 
         //Search bar
@@ -541,10 +555,13 @@ public class App extends Application {
                 if (removeFlag) {
                     hook.removeMovieFromCart(movies.get(finalI).getId());
                     focus.setScene(viewCart());
-                } else if (!hook.getCart().contains(movies.get(finalI))) {
-                    hook.addMovieToCart(movies.get(finalI).getId());
+                } else if (!hook.getCart().contains(movies.get(finalI)) && hook.addMovieToCart(movies.get(finalI).getId())) {
                     addToCart.setTextFill(Color.RED);
-                    addToCart.setText("Movie Added.");
+                    addToCart.setText("Movie Added");
+                    addToCart.setDisable(true);
+                } else {
+                    addToCart.setTextFill(Color.RED);
+                    addToCart.setText("You don't have a cart!");
                     addToCart.setDisable(true);
                 }
             });
@@ -601,7 +618,7 @@ public class App extends Application {
     }
 
     /**
-     * @return GridPane for a payment window
+     * @return GridPane for a payment window TODO: ALLOW INVENTORY OPERATORS/ADMINS TO USE THIS
      */
     private GridPane paymentWindow() {
         GridPane payment = createGrid();
@@ -644,7 +661,7 @@ public class App extends Application {
         payment.add(year, 1, 5, 1, 1);
 
         //Use Loyalty Points
-        int targetLPAmt = ((Customer) hook.loggedUser()).getLoyaltyPoints();
+        int targetLPAmt = (hook.loggedUser() instanceof Customer) ? ((Customer) hook.loggedUser()).getLoyaltyPoints() : 0;
         RadioButton lpToggle = new RadioButton("Pay with 10 loyalty points instead. [Total: " + targetLPAmt + "]");
         lpToggle.setOnAction(actionEvent -> {
             cardField.setDisable(!cardField.isDisable());
@@ -703,6 +720,43 @@ public class App extends Application {
         TextField cityTownField = new TextField();
         payment.add(cityTownField, 0, 15, 1, 1);
 
+        //for InventoryOperator/Admin use (placing orders over the phone)
+        Text custEmail = new Text("Customer E-mail");
+        TextField custEmailField = new TextField();
+        custEmailField.setOnAction(actionEvent -> {
+            if (((EmployeeStore) hook).probeCustomer(custEmailField.getText())) {
+                Customer target = (Customer) ((EmployeeStore) hook).fetchCustomer(custEmailField.getText());
+
+                lpToggle.setText("Pay with 10 loyalty points instead. [Total: " + target.getLoyaltyPoints() + "]");
+                lpToggle.setDisable(target.getLoyaltyPoints() < 10);
+
+                addressField.setText(target.getStreet());
+                postalField.setText(target.getPostalCode());
+
+                //Province code to full string
+                String provName = "";
+                for (Map.Entry<String, String> e : provToCode.entrySet())
+                    provName = (e.getValue().equals(target.getProvince())) ? e.getKey() : provName;
+                provinceBox.setValue(provName);
+
+                cityTownField.setText(target.getCityTown());
+            } else {
+                addressField.setText("");
+                postalField.setText("");
+                provinceBox.getSelectionModel().selectFirst();
+                cityTownField.setText("");
+            }
+        });
+        if (hook.loggedUser() instanceof InventoryOperator || hook.loggedUser() instanceof Admin) {
+            addressField.setDisable(true);
+            postalField.setDisable(true);
+            provinceBox.setDisable(true);
+            cityTownField.setDisable(true);
+
+            payment.add(custEmail, 1, 14);
+            payment.add(custEmailField, 1, 15);
+        }
+
         //Toggle for shipping = billing
         RadioButton shippingBilling = new RadioButton("Billing Address the same as Shipping Address");
         shippingBilling.setDisable(!(hook.loggedUser() instanceof Customer));
@@ -757,13 +811,20 @@ public class App extends Application {
                     provToCode.get(provinceBox.getValue().toString())
             };
 
-            boolean paymentSucc = (lpToggle.isSelected()) ? ((CustomerStore) hook).pointPayment() : hook.makePayment(hook.loggedUser(), 0.0, billingInfo);
+            User targetCust = null;
+            if (hook instanceof EmployeeStore && ((EmployeeStore) hook).probeCustomer(custEmailField.getText())) {
+                targetCust = (Customer) ((EmployeeStore) hook).fetchCustomer(custEmailField.getText());
+            } else {
+                targetCust = hook.loggedUser();
+            }
+
+            boolean paymentSucc = (lpToggle.isSelected()) ? hook.pointPayment(targetCust) : hook.makePayment(targetCust, 0.0, billingInfo);
 
             if (paymentSucc) {
                 try {
-                    hook.makeOrder(hook.loggedUser(), hook.getCart()); //TODO: mod so InventoryOperator can use this
+                    long orderID = hook.makeOrder(targetCust, hook.getCart()); //TODO: mod so InventoryOperator can use this
                     result.setFill(Color.BLUE);
-                    result.setText("Payment Successful; Order has been placed");
+                    result.setText("Payment Successful; Order has been placed\nYour order ID is: #" + orderID);
                     placeOrder.setDisable(true);
                 } catch (IllegalArgumentException e) { //TODO: WHEN TESTING -- CHECK IF EXCEPTION IS THROWN
                     result.setFill(Color.RED);

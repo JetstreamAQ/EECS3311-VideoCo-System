@@ -9,7 +9,9 @@ import register.RegisterCustomer;
 import register.RegisterEmployee;
 import user.DBUser;
 import user.ModifyUserDB;
+import user.data.Admin;
 import user.data.Customer;
+import user.data.InventoryOperator;
 import user.data.User;
 
 import java.util.ArrayList;
@@ -55,7 +57,7 @@ public abstract class StoreHook {
     public long makeOrder(User target, ArrayList<Movie> movies) {
         Order newOrder = new Order();
         newOrder.setOrderID(0);
-        newOrder.setEmail(currentUser.getEmail());
+        newOrder.setEmail(target.getEmail());
 
         //Setting the order date
         int monthInt = Calendar.getInstance().get(Calendar.MONTH) + 1,
@@ -142,6 +144,9 @@ public abstract class StoreHook {
      * @return true if the movies was successfully added; false otherise.
      */
     public boolean addMovieToCart(int id) {
+        if (!(currentUser instanceof Admin) && !(currentUser instanceof InventoryOperator) && !(currentUser instanceof Customer))
+            return false;
+
         if (MovieDB.getINSTANCE().getMovie(id) == null)
             return false;
 
@@ -224,6 +229,23 @@ public abstract class StoreHook {
                     newAmt = (currentOwed - amt > 0) ? currentOwed - amt : 0.0;
             ((Customer) user).setAmtOwed(newAmt);
         }
+        return true;
+    }
+
+    /**
+     * Process a payment for the current user making use of their available loyalty points
+     *
+     * @return true if the payment was successful; false otherwise
+     */
+    public boolean pointPayment(User user) {
+        if (!(user instanceof Customer))
+            return false;
+
+        int currentPoints = ((Customer) user).getLoyaltyPoints();
+        if (currentPoints < 10)
+            return false;
+
+        ((Customer) user).setLoyaltyPoints(currentPoints - 10);
         return true;
     }
 

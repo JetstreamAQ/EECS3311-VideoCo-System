@@ -9,10 +9,7 @@ import register.RegisterCustomer;
 import register.RegisterEmployee;
 import user.DBUser;
 import user.ModifyUserDB;
-import user.data.Admin;
-import user.data.Customer;
-import user.data.InventoryOperator;
-import user.data.User;
+import user.data.*;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -144,7 +141,7 @@ public abstract class StoreHook {
      * @return true if the movies was successfully added; false otherise.
      */
     public boolean addMovieToCart(int id) {
-        if (!(currentUser instanceof Admin) && !(currentUser instanceof InventoryOperator) && !(currentUser instanceof Customer))
+        if (!(currentUser instanceof Admin) && !(currentUser instanceof InventoryOperator) && !(currentUser instanceof Customer) && !(currentUser instanceof Cashier))
             return false;
 
         if (MovieDB.getINSTANCE().getMovie(id) == null)

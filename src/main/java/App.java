@@ -21,10 +21,7 @@ import order.state.OrderState;
 import storehook.CustomerStore;
 import storehook.EmployeeStore;
 import storehook.StoreHook;
-import user.data.Admin;
-import user.data.Customer;
-import user.data.InventoryOperator;
-import user.data.User;
+import user.data.*;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -476,7 +473,7 @@ public class App extends Application {
         //view cart button
         Button cart = new Button("View Cart");
         cart.setOnAction(actionEvent -> focus.setScene(viewCart()));
-        cart.setDisable(!(hook.loggedUser() instanceof Admin) && !(hook.loggedUser() instanceof InventoryOperator) && !(hook.loggedUser() instanceof Customer));
+        cart.setDisable(!(hook.loggedUser() instanceof Admin) && !(hook.loggedUser() instanceof InventoryOperator) && !(hook.loggedUser() instanceof Customer) && !(hook.loggedUser() instanceof Cashier));
         grid.add(cart, 0, 3);
 
         //Search bar
@@ -545,8 +542,16 @@ public class App extends Application {
     private GridPane createMovieView(ArrayList<Movie> movies, boolean removeFlag) {
         GridPane textRes = createGrid();
         textRes.setVgap(10);
-        for (int i = 0, pos = 0; i < movies.size(); i++, pos += 12) {
+
+        Text header = new Text();
+        header.setFont(Font.font("SansSerif", FontWeight.MEDIUM, 20));
+        if (removeFlag)
+            textRes.add(header, 0, 0, 3, 1);
+
+        double total = 0.0;
+        for (int i = 0, pos = 1; i < movies.size(); i++, pos += 12) {
             Text movie = new Text(movies.get(i).toString());
+            total += movies.get(i).getPrice();
 
             Button addToCart = new Button((removeFlag) ? "Remove" : "Add to Cart");
             addToCart.setDisable(movies.get(i).getStock() == 0 || hook.getCart().contains(movies.get(i)) && !removeFlag);
@@ -555,6 +560,10 @@ public class App extends Application {
                 if (removeFlag) {
                     hook.removeMovieFromCart(movies.get(finalI).getId());
                     focus.setScene(viewCart());
+                } else if (hook.loggedUser() instanceof Cashier && !((EmployeeStore) hook).movieAtLocation(movies.get(finalI), (Cashier) hook.loggedUser())) { //Cashiers can only get items located in their store
+                    addToCart.setTextFill(Color.RED);
+                    addToCart.setText("This movie is not at this location!");
+                    addToCart.setDisable(true);
                 } else if (!hook.getCart().contains(movies.get(finalI)) && hook.addMovieToCart(movies.get(finalI).getId())) {
                     addToCart.setTextFill(Color.RED);
                     addToCart.setText("Movie Added");
@@ -574,6 +583,8 @@ public class App extends Application {
             textRes.add(addToCart, 0, pos + 10);
             textRes.add(separator, 0, pos + 11);
         }
+
+        header.setText("Grand Total (Inc. Taxes): $" + String.format("%,.2f", (total * 1.13)));
 
         return textRes;
     }
@@ -811,9 +822,9 @@ public class App extends Application {
                     provToCode.get(provinceBox.getValue().toString())
             };
 
-            User targetCust = null;
+            User targetCust;
             if (hook instanceof EmployeeStore && ((EmployeeStore) hook).probeCustomer(custEmailField.getText())) {
-                targetCust = (Customer) ((EmployeeStore) hook).fetchCustomer(custEmailField.getText());
+                targetCust = ((EmployeeStore) hook).fetchCustomer(custEmailField.getText());
             } else {
                 targetCust = hook.loggedUser();
             }
@@ -822,10 +833,13 @@ public class App extends Application {
 
             if (paymentSucc) {
                 try {
-                    long orderID = hook.makeOrder(targetCust, hook.getCart()); //TODO: mod so InventoryOperator can use this
+                    long orderID = hook.makeOrder(targetCust, hook.getCart());
                     result.setFill(Color.BLUE);
                     result.setText("Payment Successful; Order has been placed\nYour order ID is: #" + orderID);
                     placeOrder.setDisable(true);
+
+                    if (hook.loggedUser() instanceof Cashier)
+                        hook.fetchOrder(orderID).setState("Fulfilled");
                 } catch (IllegalArgumentException e) { //TODO: WHEN TESTING -- CHECK IF EXCEPTION IS THROWN
                     result.setFill(Color.RED);
                     result.setText("One or more of your items are now out of stock.");

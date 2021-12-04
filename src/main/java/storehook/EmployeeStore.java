@@ -7,10 +7,7 @@ import order.Order;
 import order.OrderDB;
 import user.DBUser;
 import user.ModifyUserDB;
-import user.data.Admin;
-import user.data.Customer;
-import user.data.Employee;
-import user.data.User;
+import user.data.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -263,5 +260,16 @@ public class EmployeeStore extends StoreHook {
 
         //Returning the created movie
         return newMovie;
+    }
+
+    /**
+     * Check if there exists a movie at the cashier's location
+     *
+     * @param movie the movie to check for
+     * @param cashier the cashier to check
+     * @return true if the movie is at the current location of the cashier; false otherwise
+     */
+    public boolean movieAtLocation(Movie movie, Cashier cashier) {
+        return movie.getCategories().contains(cashier.getLocation());
     }
 }

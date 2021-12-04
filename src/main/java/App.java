@@ -206,7 +206,7 @@ public class App extends Application {
                 grid.add(extField, 1, vertOffset);
                 break;
 
-            case 4:
+            case 4: //Warehouse shipping team
                 grid.add(warehouseLocation, 0, ++vertOffset);
                 grid.add(provinceMenu, 1, vertOffset);
 
@@ -319,6 +319,10 @@ public class App extends Application {
         return new Scene(grid, 360, 360);
     }
 
+    /**
+     * @param employee whether the currently logged user is an employee or not
+     * @return a scene for viewing the main menu of the application after logging in.
+     */
     private Scene mainMenu(boolean employee) {
         GridPane grid = createGrid();
 
@@ -334,6 +338,7 @@ public class App extends Application {
         grid.add(logout, 0, 1);
 
         Button editAccount = new Button("Edit/View Account Details");
+        editAccount.setOnAction(actionEvent -> focus.setScene(viewProfile(hook.loggedUser())));
         grid.add(editAccount, 0, 2);
 
         Button viewOrders = new Button("View Orders");
@@ -345,6 +350,238 @@ public class App extends Application {
         grid.add(viewMovies, 0, 4);
 
         return new Scene(grid, 400, 720);
+    }
+
+    /**
+     * @param user The user whose information will be displayed and potentially modified
+     * @return a scene for viewing user profile information
+     */
+    private Scene viewProfile(User user) {
+        GridPane grid = createGrid();
+
+        String employeeInfo = (user instanceof Employee) ? (" [Employee ID#" + ((Employee) user).getId() + "]") : (" [Loyalty Points: " + ((Customer) user).getLoyaltyPoints() + "]");
+        Text text = new Text("User Profile" + employeeInfo);
+        text.setFont(Font.font("SansSerif", FontWeight.MEDIUM, 20));
+        grid.add(text, 0, 0, 3, 1);
+
+        Separator s1 = new Separator();
+        s1.setMinWidth(400);
+        s1.setMaxWidth(400);
+        grid.add(s1, 0, 1, 3, 1);
+
+        //Provinces
+        Map<String, String> provToCode = new LinkedHashMap<>();
+        provToCode.put("Newfoundland & Labrador", "NL");
+        provToCode.put("Prince Edward Island", "PE");
+        provToCode.put("Nova Scotia", "NS");
+        provToCode.put("New Brunswick", "NB");
+        provToCode.put("Quebec", "QC");
+        provToCode.put("Ontario", "ON");
+        provToCode.put("Manitoba", "MB");
+        provToCode.put("Saskatchewan", "SK");
+        provToCode.put("Alberta", "AB");
+        provToCode.put("British Columbia", "BC");
+        provToCode.put("Yukon", "YT");
+        provToCode.put("Northwest Territories", "NT");
+        provToCode.put("Nunavut", "NU");
+        ObservableList<String> provinces = FXCollections.observableArrayList(provToCode.keySet());
+
+        /*### SHARED INFO BEGIN ###*/
+        Text fName = new Text("First Name");
+        TextField fNameField = new TextField(user.getFName());
+        grid.add(fName, 0, 2);
+        grid.add(fNameField, 0, 3);
+
+        Text lName = new Text("Last Name");
+        TextField lNameField = new TextField(user.getLName());
+        grid.add(lName, 1, 2);
+        grid.add(lNameField, 1, 3);
+
+        Text username = new Text("Username");
+        TextField unField = new TextField(user.getUsername());
+        grid.add(username, 0, 4);
+        grid.add(unField, 0, 5);
+
+        Text email = new Text("E-Mail");
+        TextField emailField = new TextField(user.getEmail());
+        grid.add(email, 0, 6);
+        grid.add(emailField, 0, 7);
+
+        Text newPass = new Text("New Password");
+        PasswordField newPassField = new PasswordField();
+        grid.add(newPass, 0, 8);
+        grid.add(newPassField, 0, 9);
+
+        Text confirmPass = new Text("Confirm Password");
+        PasswordField confField = new PasswordField();
+        grid.add(confirmPass, 1, 8);
+        grid.add(confField, 1, 9);
+        /*### SHARED INFO END ###*/
+
+        /*CUSTOMER*/
+        Text address = new Text("Address:");
+        TextField addressField = new TextField();
+        Text postal = new Text("Postal Code:");
+        TextField postalField = new TextField();
+        Text cityTown = new Text("City/Town");
+        TextField cityTownField = new TextField();
+        Text province = new Text("Province:");
+        ComboBox provinceMenu = new ComboBox(provinces);
+
+        /*ADMIN*/
+        Text timeZone = new Text("Time Zone (GMT...):");
+        TextField tzField = new TextField();
+
+        /*CASHIER*/
+        Text location = new Text("Store Location:");
+        ObservableList<String> storeLocations = FXCollections.observableArrayList("In-Store Location 1", "In-Store Location 2");
+        ComboBox locationMenu = new ComboBox(storeLocations);
+
+        /*INVENTORY OPERATOR*/
+        Text extensionNum = new Text("Ext. Num:");
+        TextField extField = new TextField();
+
+        /*WAREHOUSE SHIPPING TEAM*/
+        Text warehouseLocation = new Text("Location:"); //reusing location menu for the dropdown
+        RadioButton isShipping = new RadioButton("Shipping Team?");
+
+        Separator s2 = new Separator();
+        s2.setMinWidth(400);
+        s2.setMaxWidth(400);
+        grid.add(s2, 0, 10, 3, 1);
+
+        int vertOffset = 10, type = 0;
+        if (user instanceof Customer) {
+            Customer cust = (Customer) user;
+            addressField.setText(cust.getStreet());
+            postalField.setText(cust.getPostalCode());
+            cityTownField.setText(cust.getCityTown());
+
+            //Province code to full string
+            String provName = "";
+            for (Map.Entry<String, String> e : provToCode.entrySet())
+                provName = (e.getValue().equals(cust.getProvince())) ? e.getKey() : provName;
+            provinceMenu.setValue(provName);
+
+            grid.add(address, 0, ++vertOffset);
+            grid.add(addressField, 1, vertOffset);
+
+            grid.add(postal, 0, ++vertOffset);
+            grid.add(postalField, 1, vertOffset);
+
+            grid.add(cityTown, 0, ++vertOffset);
+            grid.add(cityTownField, 1, vertOffset);
+
+            grid.add(province, 0, ++vertOffset);
+            grid.add(provinceMenu, 1, vertOffset);
+        } else if (user instanceof Admin) {
+            type = 1;
+            tzField.setText(((Admin) user).getTimeZone());
+
+            grid.add(timeZone, 0, ++vertOffset);
+            grid.add(tzField, 1, vertOffset);
+        } else if (user instanceof Cashier) {
+            type = 2;
+            locationMenu.getSelectionModel().select(((Cashier) user).getLocation());
+
+            grid.add(location, 0, ++vertOffset);
+            grid.add(locationMenu, 1, vertOffset);
+        } else if (user instanceof InventoryOperator) {
+            type = 3;
+            extField.setText(((InventoryOperator) user).getExtensionNum());
+
+            grid.add(extensionNum, 0, ++vertOffset);
+            grid.add(extField, 1, vertOffset);
+        } else if (user instanceof WarehouseShippingTeam) {
+            type = 4;
+            //Province code to full string
+            String provName = "";
+            for (Map.Entry<String, String> e : provToCode.entrySet())
+                provName = (e.getValue().equals(((WarehouseShippingTeam) user).getWarehouseLocation())) ? e.getKey() : provName;
+            provinceMenu.setValue(provName);
+
+            isShipping.setSelected(((WarehouseShippingTeam) user).getIsShipping());
+
+            grid.add(warehouseLocation, 0, ++vertOffset);
+            grid.add(provinceMenu, 1, vertOffset);
+
+            grid.add(isShipping, 1, ++vertOffset);
+        }
+
+        //back button
+        Button viewMovies = new Button("Back");
+        viewMovies.setOnAction(actionEvent -> focus.setScene(mainMenu(user instanceof Employee)));
+        grid.add(viewMovies, 0, ++vertOffset);
+
+        //Save edit
+        Button save = new Button("Save Changes");
+        int finalType = type;
+        save.setOnAction(actionEvent -> {
+            save.setTextFill(Color.RED);
+            if (newPassField.getText().equals(confField.getText())) {
+                String[] additionalInfo = new String[0];
+                String[] baseInfo = {
+                        fNameField.getText(),
+                        lNameField.getText(),
+                        unField.getText(),
+                        emailField.getText(),
+                        (newPassField.getText().equals("")) ? user.getPassword() : newPassField.getText()
+                };
+                switch (finalType) {
+                    case 0:
+                        additionalInfo = new String[]{
+                                addressField.getText(),
+                                postalField.getText(),
+                                cityTownField.getText(),
+                                provToCode.get(provinceMenu.getValue().toString())
+                        };
+                        break;
+
+                    case 1:
+                        additionalInfo = new String[]{tzField.getText()};
+                        break;
+                    case 2:
+                        additionalInfo = new String[]{locationMenu.getValue().toString()};
+                        break;
+                    case 3:
+                        additionalInfo = new String[]{extField.getText()};
+                        break;
+
+                    case 4:
+                        additionalInfo = new String[]{
+                                provToCode.get(provinceMenu.getValue().toString()),
+                                (isShipping.isSelected()) ? "True" : "False"
+                        };
+                        break;
+                }
+
+                int editRes = hook.editUser(hook.loggedUser().getEmail(), baseInfo, additionalInfo);
+                switch(editRes) {
+                    case -5: save.setText("Password missing special chars."); break;
+                    case -4: save.setText("Password missing numbers"); break;
+                    case -3: save.setText("Password missing upper-case chars."); break;
+                    case -2: save.setText("Password missing lower-case chars."); break;
+                    case -1: save.setText("Password too short!"); break;
+
+                    case 0:
+                        save.setTextFill(Color.BLUE);
+                        save.setText("Changes Saved!");
+                        break;
+
+                    case 3: save.setText("The new username/email is in use!"); break;
+                    case 5: save.setText("Invalid timezone!"); break;
+                    case 6: save.setText("Invalid postal code!"); break;
+                    case 7: save.setText("Invalid extension number!"); break;
+
+                    default: save.setText("There's a problem with your input!");
+                }
+            } else {
+                save.setText("Passwords do not match!");
+            }
+        });
+        grid.add(save, 1, vertOffset);
+
+        return new Scene(grid, 1280, 720);
     }
 
     /**

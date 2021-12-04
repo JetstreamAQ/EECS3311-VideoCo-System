@@ -347,6 +347,9 @@ public class App extends Application {
         return new Scene(grid, 400, 720);
     }
 
+    /**
+     * @return Scene for viewing orders
+     */
     private Scene viewOrders() {
         GridPane grid = createGrid();
 
@@ -363,7 +366,7 @@ public class App extends Application {
             ArrayList<Long> orderIds = ((CustomerStore) hook).fetchCustOrders();
             for (Long l : orderIds)
                 ids.add("Order #" + l);
-        } else if (hook instanceof EmployeeStore && (hook.loggedUser() instanceof Admin || hook.loggedUser() instanceof InventoryOperator)) {
+        } else if (hook instanceof EmployeeStore && (hook.loggedUser() instanceof Admin || hook.loggedUser() instanceof InventoryOperator || hook.loggedUser() instanceof WarehouseShippingTeam)) {
             ArrayList<Order> admin = ((EmployeeStore) hook).viewOrders();
             for (Order o : admin)
                 ids.add("Order #" + o.getOrderID());
@@ -433,9 +436,18 @@ public class App extends Application {
         });
         grid.add(seeOrder,0, 2);
 
+        //Search for
         TextField search = new TextField();
+        Button searchButton = new Button("Search");
+        searchButton.setOnAction(actionEvent -> {
+            ArrayList<Order> temp = hook.fetchOrders(search.getText(), (hook instanceof CustomerStore) ? hook.loggedUser().getEmail() : null);
+            ObservableList<String> temp2 = FXCollections.observableArrayList();
+            for (Order o : temp)
+                temp2.add("Order #" + o.getOrderID());
+            orders.setItems(temp2);
+        });
         grid.add(search, 0, 4);
-
+        grid.add(searchButton, 1, 4);
 
         //back button
         Button viewMovies = new Button("Back");

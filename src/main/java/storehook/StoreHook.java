@@ -257,6 +257,25 @@ public abstract class StoreHook {
     }
 
     /**
+     * A mid-tier hook designed to filter orders based on a given search criterium.
+     *
+     * @param search search criteria
+     * @param email email to filter for
+     * @return ArrayList of orders matching the passed filter parameters.
+     */
+    public ArrayList<Order> fetchOrders(String search, String email) {
+        ArrayList<Order> temp = new ArrayList<>();
+        for (Order o : OrderDB.getINSTANCE().getOrders()) {
+            if (Long.toString(o.getOrderID()).equals(search) || o.getEmail().equalsIgnoreCase(search) || o.getOrderDate().equals(search) || search.equals(""))
+                temp.add(o);
+        }
+
+        //Filtering out via email search
+        temp.removeIf(o -> email != null && !o.getEmail().equalsIgnoreCase(email));
+        return temp;
+    }
+
+    /**
      * mid-tier hook for OrderDB.cancelOrder(...)
      *
      * @param id the ID of the order to cancel

@@ -166,17 +166,22 @@ public class EmployeeStore extends StoreHook {
         }
 
         //Modifying the price and stock
-        int priceSet = movieDB.setPrice(is[0], newMovie.getPrice()),
-            stockSet = movieDB.setStock(is[1], newMovie.getStock()),
-            titleSet = movieDB.setTRGD(is[0], 0, newMovie.getTitle()),
-            releaseSet = movieDB.setTRGD(is[0], 1, newMovie.getReleaseDate()),
-            genreSet = movieDB.setTRGD(is[0], 2, newMovie.getGenre()),
-            descSet = movieDB.setTRGD(is[0], 2, newMovie.getDescription()),
-            actorSet = movieDB.setADC(is[0], 0, (ArrayList<String>) newMovie.getActors()),
-            directorSet = movieDB.setADC(is[0], 1, (ArrayList<String>) newMovie.getDirectors()),
-            categorySet = movieDB.setADC(is[0], 2, (ArrayList<String>) newMovie.getCategories());
+        int[] res = {
+                movieDB.setPrice(is[0], newMovie.getPrice()),
+                movieDB.setStock(is[0], newMovie.getStock()),
+                movieDB.setTRGD(is[0], 0, newMovie.getTitle()),
+                movieDB.setTRGD(is[0], 1, newMovie.getReleaseDate()),
+                movieDB.setTRGD(is[0], 2, newMovie.getGenre()),
+                movieDB.setTRGD(is[0], 3, newMovie.getDescription()),
+                movieDB.setADC(is[0], 0, (ArrayList<String>) newMovie.getActors()),
+                movieDB.setADC(is[0], 1, (ArrayList<String>) newMovie.getDirectors()),
+                movieDB.setADC(is[0], 2, (ArrayList<String>) newMovie.getCategories())
+        };
+        boolean modRes = true;
+        for (int i : res)
+            modRes = modRes && (i == 0 || i == 2);
 
-        return priceSet == 0 && stockSet == 0 && titleSet == 0 && releaseSet == 0 && genreSet == 0 && descSet == 0 && actorSet == 0 && directorSet == 0 && categorySet == 0;
+        return modRes;
     }
 
     /**
@@ -234,7 +239,7 @@ public class EmployeeStore extends StoreHook {
         }
 
         //Ensuring the date is formatted properly
-        if (!trgd[1].matches("^\\d{4}-[0, 1][1-9]-[0-3]\\d$"))
+        if (!trgd[1].matches("^\\d{4}-[01][1-9]-[0-3]\\d$"))
             throw new IllegalArgumentException();
         newMovie.setReleaseDate(trgd[1]);
 
@@ -250,7 +255,7 @@ public class EmployeeStore extends StoreHook {
         ArrayList<String> categories = new ArrayList<>(Arrays.asList(adc[2]));
 
         //For categories, one of the entries MUST be "In-Store Location 1"/"In-Store Location 2"
-        if (!categories.contains("In-Store Location 1") || !categories.contains("In-Store Location 2"))
+        if (!categories.contains("In-Store Location 1") && !categories.contains("In-Store Location 2"))
             throw new IllegalArgumentException();
 
         //Now setting ADC

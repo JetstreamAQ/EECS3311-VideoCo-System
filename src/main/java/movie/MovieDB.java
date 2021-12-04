@@ -272,7 +272,7 @@ public class MovieDB {
             case 0: movieDB.get(id).setTitle(newString); writeYAML(); return 0;
 
             case 1:
-                if (!newString.matches("^\\d{4}-[0, 1][1-9]-[0-3]\\d$"))
+                if (!newString.matches("^\\d{4}-[01][1-9]-[0-3]\\d$"))
                     return 3;
 
                 movieDB.get(id).setReleaseDate(newString);

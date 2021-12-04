@@ -1,4 +1,6 @@
 import javafx.application.Application;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
@@ -754,6 +756,9 @@ public class App extends Application {
         return new Scene(grid, 1280, 720);
     }
 
+    /**
+     * @return a scene for viewing the cart contents
+     */
     private Scene viewCart() {
         GridPane grid = createGrid();
 
@@ -777,6 +782,226 @@ public class App extends Application {
         Button viewMovies = new Button("Back");
         viewMovies.setOnAction(actionEvent -> focus.setScene(browseMovies(hook instanceof EmployeeStore)));
         grid.add(viewMovies, 0, 2);
+
+        return new Scene(grid, 1280, 720);
+    }
+
+    /**
+     * @return a shared scene between movie addition and modification
+     * @param movie if editing a movie, this will be the movie that will be edited.  If parameter is null; a new movie is added instead
+     */
+    private Scene movieMod(Movie movie) {
+        GridPane grid = createGrid();
+
+        Text text = new Text("Add/Edit Movie");
+        text.setFont(Font.font("SansSerif", FontWeight.MEDIUM, 20));
+        grid.add(text, 0, 0, 3, 1);
+
+        Text id = new Text("Movie ID:");
+        TextField idField = new TextField();
+        grid.add(id, 0, 1);
+        grid.add(idField, 1, 1);
+
+        Text stock = new Text("Movie Stock:");
+        TextField stockField = new TextField();
+        grid.add(stock, 0, 2);
+        grid.add(stockField, 1, 2);
+
+        Text price = new Text("Price ($CAD):");
+        TextField priceField = new TextField();
+        grid.add(price, 0, 3);
+        grid.add(priceField, 1, 3);
+
+        Text title = new Text("Title:");
+        TextField movieTitle = new TextField();
+        grid.add(title, 0, 4);
+        grid.add(movieTitle, 1, 4);
+
+        Text releaseDate = new Text("Release Date:");
+        TextField rdField = new TextField();
+        grid.add(releaseDate, 0, 5);
+        grid.add(rdField, 1, 5);
+
+        Text genre = new Text("Genre:");
+        TextField genreField = new TextField();
+        grid.add(genre, 0, 6);
+        grid.add(genreField, 1, 6);
+
+        Text desc = new Text("Description:");
+        TextField descField = new TextField();
+        grid.add(desc, 0, 7);
+        grid.add(descField, 1, 7);
+
+        Text actors = new Text("Actors:");
+        ObservableList<String> actorList = FXCollections.observableArrayList();
+        actorList.add("New Entry...");
+        ComboBox actorBox = new ComboBox(actorList);
+        actorBox.getSelectionModel().selectFirst();
+        actorBox.setMaxWidth(150);
+        actorBox.setMinWidth(150);
+        TextField actorField = new TextField();
+        actorField.setOnAction(actionEvent -> {
+            int focusIndex = actorBox.getSelectionModel().getSelectedIndex();
+            String focusText = actorList.get(focusIndex),
+                   fieldText = actorField.getText();
+
+            if (!focusText.equals(fieldText)) {
+                if (focusText.equals("New Entry...") && !fieldText.equals("")) {
+                    actorList.set(focusIndex, fieldText);
+                    actorList.add("New Entry...");
+                    actorBox.getSelectionModel().select(focusIndex);
+                } else if (!focusText.equals("New Entry...") && fieldText.equals("")) {
+                    actorBox.getSelectionModel().selectLast();
+                    actorList.remove(focusIndex);
+                } else if (!focusText.equals("New Entry...")){
+                    actorList.set(focusIndex, fieldText);
+                }
+            }
+        });
+        actorBox.setOnAction(actionEvent -> actorField.setText(actorBox.getSelectionModel().getSelectedItem().toString()));
+        grid.add(actors, 0, 8);
+        grid.add(actorBox, 1, 8);
+        grid.add(actorField, 2, 8);
+
+        Text directors = new Text("Directors:");
+        ObservableList<String> directorList = FXCollections.observableArrayList();
+        directorList.add("New Entry...");
+        ComboBox directorBox = new ComboBox(directorList);
+        directorBox.getSelectionModel().selectFirst();
+        directorBox.setMaxWidth(150);
+        directorBox.setMinWidth(150);
+        TextField directorField = new TextField();
+        directorField.setOnAction(actionEvent -> {
+            int focusIndex = directorBox.getSelectionModel().getSelectedIndex();
+            String focusText = directorList.get(focusIndex),
+                    fieldText = directorField.getText();
+
+            if (!focusText.equals(fieldText)) {
+                if (focusText.equals("New Entry...") && !fieldText.equals("")) {
+                    directorList.set(focusIndex, fieldText);
+                    directorList.add("New Entry...");
+                    directorBox.getSelectionModel().select(focusIndex);
+                } else if (!focusText.equals("New Entry...") && fieldText.equals("")) {
+                    directorBox.getSelectionModel().selectLast();
+                    directorList.remove(focusIndex);
+                } else if (!focusText.equals("New Entry...")){
+                    directorList.set(focusIndex, fieldText);
+                }
+            }
+        });
+        directorBox.setOnAction(actionEvent -> directorField.setText(directorBox.getSelectionModel().getSelectedItem().toString()));
+        grid.add(directors, 0, 9);
+        grid.add(directorBox, 1, 9);
+        grid.add(directorField, 2, 9);
+
+        Text categories = new Text("Categories:");
+        ObservableList<String> catList = FXCollections.observableArrayList();
+        catList.add("New Entry...");
+        ComboBox catBox = new ComboBox(catList);
+        catBox.getSelectionModel().selectFirst();
+        catBox.setMaxWidth(150);
+        catBox.setMinWidth(150);
+        TextField catField = new TextField();
+        catField.setOnAction(actionEvent -> {
+            int focusIndex = catBox.getSelectionModel().getSelectedIndex();
+            String focusText = catList.get(focusIndex),
+                    fieldText = catField.getText();
+
+            if (!focusText.equals(fieldText)) {
+                if (focusText.equals("New Entry...") && !fieldText.equals("")) {
+                    catList.set(focusIndex, fieldText);
+                    catList.add("New Entry...");
+                    catBox.getSelectionModel().select(focusIndex);
+                } else if (!focusText.equals("New Entry...") && fieldText.equals("")) {
+                    catBox.getSelectionModel().selectLast();
+                    catList.remove(focusIndex);
+                } else if (!focusText.equals("New Entry...")){
+                    catList.set(focusIndex, fieldText);
+                }
+            }
+        });
+        catBox.setOnAction(actionEvent -> catField.setText(catBox.getSelectionModel().getSelectedItem().toString()));
+        grid.add(categories, 0, 10);
+        grid.add(catBox, 1, 10);
+        grid.add(catField, 2, 10);
+
+        if (movie != null) {
+            idField.setDisable(true);
+
+            idField.setText(Integer.toString(movie.getId()));
+            stockField.setText(Integer.toString(movie.getStock()));
+            priceField.setText(Double.toString(movie.getPrice()));
+            movieTitle.setText(movie.getTitle());
+            rdField.setText(movie.getReleaseDate());
+            genreField.setText(movie.getGenre());
+            descField.setText(movie.getDescription());
+
+            actorList.clear();
+            actorList.addAll(movie.getActors());
+            actorList.add("New Entry...");
+            actorBox.getSelectionModel().selectFirst();
+            actorField.setText(actorBox.getValue().toString());
+
+            directorList.clear();
+            directorList.addAll(movie.getDirectors());
+            directorList.add("New Entry...");
+            directorBox.getSelectionModel().selectFirst();
+            directorField.setText(directorBox.getValue().toString());
+
+            catList.clear();
+            catList.addAll(movie.getCategories());
+            catList.add("New Entry...");
+            catBox.getSelectionModel().selectFirst();
+            catField.setText(catBox.getValue().toString());
+        }
+
+        //back button
+        Button viewMovies = new Button("Back");
+        viewMovies.setOnAction(actionEvent -> focus.setScene(browseMovies(true)));
+        grid.add(viewMovies, 0, 11);
+
+        //Edit/Modify movie
+        Button editModify = new Button("Save Edits");
+        editModify.setOnAction(actionEvent -> {
+            //parse textfields into useable input
+            int[] is = new int[2];
+            double parsedPrice = 0.0;
+            try {
+                is = new int[]{Integer.parseInt(idField.getText()), Integer.parseInt(stockField.getText())};
+                parsedPrice = Double.parseDouble(priceField.getText());
+            } catch (NumberFormatException e) {
+                is = new int[]{-1, -1};
+                parsedPrice = -1.0;
+            }
+
+            String[] trgd = {
+                    movieTitle.getText(),
+                    rdField.getText(),
+                    genreField.getText(),
+                    descField.getText()
+            };
+
+            String[][] adc = new String[3][];
+            actorList.remove(actorList.size() - 1);
+            adc[0] = actorList.toArray(new String[actorList.size()]);
+            directorList.remove(directorList.size() - 1);
+            adc[1] = directorList.toArray(new String[directorList.size()]);
+            catList.remove(catList.size() - 1);
+            adc[2] = catList.toArray(new String[catList.size()]);
+
+            actorList.add("New Entry...");
+            directorList.add("New Entry...");
+            catList.add("New Entry...");
+
+            if (((EmployeeStore) hook).modifyMovie(is, parsedPrice, trgd, adc)) {
+                editModify.setTextFill(Color.BLUE);
+                editModify.setText("Changes Saved!");
+            } else {
+                editModify.setTextFill(Color.RED);
+                editModify.setText("Error with changes");
+            }
+        });
+        grid.add(editModify, 1, 11);
 
         return new Scene(grid, 1280, 720);
     }
@@ -824,55 +1049,22 @@ public class App extends Application {
                 }
             });
 
+            Button editMovie = new Button("Edit Movie");
+            editMovie.setOnAction(actionEvent -> focus.setScene(movieMod(movies.get(finalI))));
+
             Separator separator = new Separator();
             separator.setMaxWidth(360);
+            separator.setMinWidth(360);
             separator.setValignment(VPos.TOP);
 
-            textRes.add(movie, 0, pos, 1, 10);
-            textRes.add(addToCart, 0, pos + 10);
-            textRes.add(separator, 0, pos + 11);
+            textRes.add(movie, 0, pos, 5, 10);
+            textRes.add(addToCart, 0, pos + 10, 1, 1);
+            if (hook.loggedUser() instanceof Admin && !removeFlag)
+                textRes.add(editMovie, 1, pos + 10, 1, 1);
+            textRes.add(separator, 0, pos + 11, 5, 1);
         }
 
         header.setText("Grand Total (Inc. Taxes): $" + String.format("%,.2f", (total * 1.13)));
-
-        return textRes;
-    }
-
-    /**
-     * gridpane view for reviewing orders
-     *
-     * @param movies ArrayList of movies to display
-     * @return GridPane view for reviewing orders
-     */
-    private GridPane createMovieView(ArrayList<Movie> movies) {
-        GridPane textRes = createGrid();
-        textRes.setVgap(10);
-        for (int i = 0, pos = 0; i < movies.size(); i++, pos += 12) {
-            Text movie = new Text(movies.get(i).toString());
-
-            /*Button addToCart = new Button((removeFlag) ? "Remove" : "Add to Cart");
-            addToCart.setDisable(movies.get(i).getStock() == 0 || hook.getCart().contains(movies.get(i)) && !removeFlag);
-            int finalI = i;
-            addToCart.setOnAction(actionEvent -> {
-                if (removeFlag) {
-                    hook.removeMovieFromCart(movies.get(finalI).getId());
-                    focus.setScene(viewCart());
-                } else if (!hook.getCart().contains(movies.get(finalI))) {
-                    hook.addMovieToCart(movies.get(finalI).getId());
-                    addToCart.setTextFill(Color.RED);
-                    addToCart.setText("Movie Added.");
-                    addToCart.setDisable(true);
-                }
-            });*/
-
-            Separator separator = new Separator();
-            separator.setMaxWidth(360);
-            separator.setValignment(VPos.TOP);
-
-            textRes.add(movie, 0, pos, 1, 10);
-            //textRes.add(addToCart, 0, pos + 10);
-            textRes.add(separator, 0, pos + 11);
-        }
 
         return textRes;
     }

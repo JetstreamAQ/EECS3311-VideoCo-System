@@ -38,46 +38,24 @@ public class EmployeeStore extends StoreHook {
      * @param email the email of the associated user to modify
      * @param baseInfo an array containing base info shared among each user class
      * @param additionalInfo string array of the unique info between each class
-     * @return 8 if the current user is not an admin nor are they editing their own account; refer to non-overridden method in StoreHook for additional int codes.
+     * @return -80 if the current user is not an admin nor are they editing their own account; refer to non-overridden method in StoreHook for additional int codes.
      */
     @Override
     public int editUser(String email, String[] baseInfo, String[] additionalInfo) {
-        if (currentUser instanceof Admin || currentUser.getEmail().equalsIgnoreCase(email))
-            super.editUser(email, baseInfo, additionalInfo);
+        if (!email.equalsIgnoreCase("VideoCoSystem@VideoCo.org") && (currentUser instanceof Admin || currentUser.getEmail().equalsIgnoreCase(email)))
+            return super.editUser(email, baseInfo, additionalInfo);
 
-        return 8;
-    }
-
-    /**
-     * A mid-tier hook for Register objects.
-     *
-     * @param baseInfo An array of strings containing the basic information of a User; properties of User
-     * @param additionalInfo An array of string containing information to the respective data type of the user
-     * @param flag dictates what type of user is being registered
-     * @return  Both RegisterCustomer and RegisterEmployee return different integers based on execution result.  Please
-     *          refer to the relevant documentation for the respective object type.
-     *          Result of -20 if an admin account is being made
-     *          Result of -30 if an employee account is being made by someone other than an Admin.
-     */
-    @Override
-    public int addUser(String[] baseInfo, String[] additionalInfo, String flag) {
-        if (flag.equals("Admin"))
-            return -20;
-
-        if (!(currentUser instanceof Admin) && !flag.equals("Customer"))
-            return -30;
-
-        return super.addUser(baseInfo, additionalInfo, flag);
+        return -80;
     }
 
     /**
      * A mid-tier hook for ModifyUserDB.removeUser(...)
      *
      * @param email the email of the associated user to remove
-     * @return true if the user was successfully removed; false otherwise
+     * @return true if the user was successfully removed; false if a user is trying to delete itself
      */
     public boolean deleteUser(String email) {
-        if (currentUser instanceof Admin || currentUser.getEmail().equalsIgnoreCase(email))
+        if (currentUser instanceof Admin && !currentUser.getEmail().equalsIgnoreCase(email) && !email.equalsIgnoreCase("VideoCoSystem@VideoCo.org"))
             return ModifyUserDB.removeUser(email);
 
         return false;
@@ -108,6 +86,14 @@ public class EmployeeStore extends StoreHook {
     }
 
     /**
+     * @param key the associated username/email of the user to get
+     * @return User object of the user with the given username/email
+     */
+    public User fetchUser(String key) {
+        return DBUser.getINSTANCE().getUser(key);
+    }
+
+    /**
      * A mid-tier hook for OrderDB.getOrders()
      *
      * @return a list of every order in the system.
@@ -128,7 +114,7 @@ public class EmployeeStore extends StoreHook {
         //Abort the addition if there is a movie mapped to the given ID already
         if (MovieDB.getINSTANCE().getMovie(is[0]) != null)
             return false;
-        Movie newMovie = null;
+        Movie newMovie;
 
         //Creating the movie object to add
         try {
@@ -216,6 +202,8 @@ public class EmployeeStore extends StoreHook {
 
         Movie newMovie = new Movie();
 
+        newMovie.setId(is[0]);
+
         //Ensuring the new stock is a positive integer
         if (is[1] < 0)
             throw new IllegalArgumentException();
@@ -255,8 +243,9 @@ public class EmployeeStore extends StoreHook {
         ArrayList<String> categories = new ArrayList<>(Arrays.asList(adc[2]));
 
         //For categories, one of the entries MUST be "In-Store Location 1"/"In-Store Location 2"
-        if (!categories.contains("In-Store Location 1") && !categories.contains("In-Store Location 2"))
-            throw new IllegalArgumentException();
+        //Don't need this; some movies can just be in the warehouse
+        /*if (!categories.contains("In-Store Location 1") && !categories.contains("In-Store Location 2"))
+            throw new IllegalArgumentException();*/
 
         //Now setting ADC
         newMovie.setActors(actors);

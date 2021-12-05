@@ -1,6 +1,4 @@
 import javafx.application.Application;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
@@ -25,8 +23,6 @@ import storehook.EmployeeStore;
 import storehook.StoreHook;
 import user.data.*;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -68,7 +64,7 @@ public class App extends Application {
         grid.add(customerLogin, 1, 4);
 
         Button register = new Button("Register");
-        register.setOnAction(actionEvent -> focus.setScene(register(0)));
+        register.setOnAction(actionEvent -> focus.setScene(register(0, true)));
         HBox regBox = new HBox(10);
         regBox.setAlignment(Pos.CENTER);
         regBox.getChildren().add(register);
@@ -81,9 +77,10 @@ public class App extends Application {
      * The register screen scene.
      *
      * @param type integer flag representing the type of user account being created
+     * @param logMenu whether we should return to the main menu for when the user already logged in
      * @return the register screen
      */
-    private Scene register(int type) {
+    private Scene register(int type, boolean logMenu) {
         GridPane grid = createGrid();
 
         //Provinces
@@ -158,6 +155,7 @@ public class App extends Application {
         TextField cityTownField = new TextField();
         Text province = new Text("Province:");
         ComboBox provinceMenu = new ComboBox(provinces);
+        provinceMenu.getSelectionModel().selectFirst();
 
         /*ADMIN*/
         Text timeZone = new Text("Time Zone (GMT...):");
@@ -167,6 +165,7 @@ public class App extends Application {
         Text location = new Text("Store Location:");
         ObservableList<String> storeLocations = FXCollections.observableArrayList("In-Store Location 1", "In-Store Location 2");
         ComboBox locationMenu = new ComboBox(storeLocations);
+        locationMenu.getSelectionModel().selectFirst();
 
         /*INVENTORY OPERATOR*/
         Text extensionNum = new Text("Ext. Num:");
@@ -218,7 +217,7 @@ public class App extends Application {
         /*ADDITIONAL INFORMATION END*/
 
         Button back = new Button("Back");
-        back.setOnAction(actionEvent -> focus.setScene(openScreen()));
+        back.setOnAction(actionEvent -> focus.setScene((logMenu) ? mainMenu(true) : openScreen()));
         grid.add(back, 0, ++vertOffset);
 
         Text regResult = new Text();
@@ -228,7 +227,7 @@ public class App extends Application {
         register.setOnAction(actionEvent -> {
             regResult.setFill(Color.RED);
             if (passField.getText().equals(passConfField.getText())) {
-                hook = (type == 0) ? new CustomerStore() : new EmployeeStore();
+                StoreHook tempHook = (type == 0) ? new CustomerStore() : new EmployeeStore();
 
                 baseInfo[0] = fNameField.getText();
                 baseInfo[1] = lNameField.getText();
@@ -259,7 +258,8 @@ public class App extends Application {
                         break;
                 }
 
-                int res = hook.addUser(baseInfo, additionalInfo, intToString.get(type));
+                int res = tempHook.addUser(baseInfo, additionalInfo, intToString.get(type));
+                System.out.println(res);
                 regResult.setText(
                         (res == 0) ? "Registration successful" :
                         (1 <= res && res <= 5) ? "Password must:\n- Be 8 characters long\n- Contain at least one lowercase & uppercase letter\n- One symbol\n- One number\n- No spaces " :
@@ -340,7 +340,7 @@ public class App extends Application {
         grid.add(logout, 0, 1);
 
         Button editAccount = new Button("Edit/View Account Details");
-        editAccount.setOnAction(actionEvent -> focus.setScene(viewProfile(hook.loggedUser())));
+        editAccount.setOnAction(actionEvent -> focus.setScene(new Scene(viewProfile(hook.loggedUser()), 1280, 720)));
         grid.add(editAccount, 0, 2);
 
         Button viewOrders = new Button("View Orders");
@@ -351,6 +351,29 @@ public class App extends Application {
         viewMovies.setOnAction(actionEvent -> focus.setScene(browseMovies(employee)));
         grid.add(viewMovies, 0, 4);
 
+        Button viewUsers = new Button("View/Edit User Accounts");
+        viewUsers.setOnAction(actionEvent -> focus.setScene(viewUserList()));
+
+        ObservableList<String> employeeType = FXCollections.observableArrayList();
+        employeeType.add("Admin");
+        employeeType.add("Cashier");
+        employeeType.add("Inventory Operator");
+        employeeType.add("Warehouse Shipping Team");
+        ComboBox employeeVar = new ComboBox(employeeType);
+        employeeVar.getSelectionModel().selectFirst();
+
+        Button regEmployee = new Button("Register Employee");
+        regEmployee.setOnAction(actionEvent -> focus.setScene(register(employeeVar.getSelectionModel().getSelectedIndex() + 1, true)));
+
+        if (hook.loggedUser() instanceof Admin) {
+            grid.add(viewUsers, 0, 5);
+            grid.add(regEmployee, 0, 6);
+            grid.add(employeeVar, 1, 6);
+        }
+
+        /*System Exclusive Stuff*/
+
+
         return new Scene(grid, 400, 720);
     }
 
@@ -358,7 +381,7 @@ public class App extends Application {
      * @param user The user whose information will be displayed and potentially modified
      * @return a scene for viewing user profile information
      */
-    private Scene viewProfile(User user) {
+    private GridPane viewProfile(User user) {
         GridPane grid = createGrid();
 
         String employeeInfo = (user instanceof Employee) ? (" [Employee ID#" + ((Employee) user).getId() + "]") : (" [Loyalty Points: " + ((Customer) user).getLoyaltyPoints() + "]");
@@ -557,7 +580,7 @@ public class App extends Application {
                         break;
                 }
 
-                int editRes = hook.editUser(hook.loggedUser().getEmail(), baseInfo, additionalInfo);
+                int editRes = hook.editUser(user.getEmail(), baseInfo, additionalInfo);
                 switch(editRes) {
                     case -5: save.setText("Password missing special chars."); break;
                     case -4: save.setText("Password missing numbers"); break;
@@ -574,6 +597,7 @@ public class App extends Application {
                     case 5: save.setText("Invalid timezone!"); break;
                     case 6: save.setText("Invalid postal code!"); break;
                     case 7: save.setText("Invalid extension number!"); break;
+                    case 8: save.setText("Invalid street!"); break;
 
                     default: save.setText("There's a problem with your input!");
                 }
@@ -582,6 +606,68 @@ public class App extends Application {
             }
         });
         grid.add(save, 1, vertOffset);
+
+        return grid;
+        //return new Scene(grid, 1280, 720);
+    }
+
+    private Scene viewUserList() {
+        GridPane grid = createGrid();
+
+        Text text = new Text("List of Registered Users");
+        text.setFont(Font.font("SansSerif", FontWeight.MEDIUM, 24));
+        grid.add(text, 0, 0, 3, 1);
+
+        Button viewUser = new Button("View User");
+        Button deleteUser = new Button("Delete User");
+
+        AtomicReference<ObservableList<String>> emails = new AtomicReference<>(FXCollections.observableArrayList());
+        AtomicReference<ArrayList<User>> userList = new AtomicReference<>(((EmployeeStore) hook).viewUsers());
+        for (User u : userList.get())
+            emails.get().add(u.getEmail());
+        ListView<String> orders = new ListView<>(emails.get());
+        orders.setPrefSize(300, 500);
+        orders.setEditable(false);
+        grid.add(orders, 0, 1, 5, 1);
+
+        ScrollPane userDetails = new ScrollPane();
+        userDetails.setPrefSize(600, 500);
+        userDetails.setContent(viewProfile(userList.get().get(0)));
+        grid.add(userDetails, 5, 1, 5, 1);
+
+        viewUser.setOnAction(actionEvent -> {
+            if (orders.getSelectionModel().getSelectedIndex() >= 0) {
+                User target = ((EmployeeStore) hook).fetchUser(orders.getSelectionModel().getSelectedItem());
+                userDetails.setContent(viewProfile(target));
+
+                emails.set(FXCollections.observableArrayList());
+                userList.set(((EmployeeStore) hook).viewUsers());
+                for (User u : userList.get())
+                    emails.get().add(u.getEmail());
+                orders.setItems(emails.get());
+
+                deleteUser.setText("Delete User");
+            }
+        });
+        grid.add(viewUser,0, 2);
+
+        deleteUser.setOnAction(actionEvent -> {
+            if (orders.getSelectionModel().getSelectedIndex() >= 0) {
+                boolean succ = ((EmployeeStore) hook).deleteUser(orders.getSelectionModel().getSelectedItem());
+                if (succ)
+                    deleteUser.setText("User Removed!");
+                else
+                    deleteUser.setText("Unable to delete user!");
+
+                emails.set(FXCollections.observableArrayList());
+                userList.set(((EmployeeStore) hook).viewUsers());
+                for (User u : userList.get())
+                    emails.get().add(u.getEmail());
+                orders.setItems(emails.get());
+                userDetails.setContent(viewProfile(userList.get().get(0)));
+            }
+        });
+        grid.add(deleteUser, 1, 2);
 
         return new Scene(grid, 1280, 720);
     }
@@ -719,17 +805,23 @@ public class App extends Application {
         //back button
         Button viewMovies = new Button("Back");
         viewMovies.setOnAction(actionEvent -> focus.setScene(mainMenu(employee)));
-        grid.add(viewMovies, 0, 4);
+        grid.add(viewMovies, 0, 4, 1, 1);
+
+        //Add button
+        Button addMovie = new Button("Add Movie");
+        addMovie.setOnAction(actionEvent -> focus.setScene(movieMod(null)));
+        if (hook.loggedUser() instanceof Admin)
+            grid.add(addMovie, 2, 3, 3, 1);
 
         //view cart button
         Button cart = new Button("View Cart");
         cart.setOnAction(actionEvent -> focus.setScene(viewCart()));
         cart.setDisable(!(hook.loggedUser() instanceof Admin) && !(hook.loggedUser() instanceof InventoryOperator) && !(hook.loggedUser() instanceof Customer) && !(hook.loggedUser() instanceof Cashier));
-        grid.add(cart, 0, 3);
+        grid.add(cart, 0, 3, 1, 1);
 
         //Search bar
         TextField searchBar = new TextField();
-        grid.add(searchBar, 0, 1);
+        grid.add(searchBar, 0, 1, 3, 1);
 
         //Search option dropdown
         Map<String, Integer> optionToFlag = new LinkedHashMap<>();
@@ -743,7 +835,7 @@ public class App extends Application {
         ObservableList<String> options = FXCollections.observableArrayList(optionToFlag.keySet());
         ComboBox optionMenu = new ComboBox(options);
         optionMenu.getSelectionModel().selectFirst();
-        grid.add(optionMenu, 1, 1);
+        grid.add(optionMenu, 3, 1, 3, 1);
 
         //Search button
         Button searchButton = new Button("Search");
@@ -751,7 +843,7 @@ public class App extends Application {
             results.set(hook.searchMovies(searchBar.getText(), optionToFlag.get(optionMenu.getValue().toString())));
             movieWindow.setContent(createMovieView(results.get(), false));
         });
-        grid.add(searchButton, 2, 1);
+        grid.add(searchButton, 6, 1, 3 ,1);
 
         return new Scene(grid, 1280, 720);
     }
@@ -961,11 +1053,11 @@ public class App extends Application {
         grid.add(viewMovies, 0, 11);
 
         //Edit/Modify movie
-        Button editModify = new Button("Save Edits");
+        Button editModify = new Button((movie == null) ? "Add Movie" : "Save Edits");
         editModify.setOnAction(actionEvent -> {
             //parse textfields into useable input
-            int[] is = new int[2];
-            double parsedPrice = 0.0;
+            int[] is;
+            double parsedPrice;
             try {
                 is = new int[]{Integer.parseInt(idField.getText()), Integer.parseInt(stockField.getText())};
                 parsedPrice = Double.parseDouble(priceField.getText());
@@ -993,12 +1085,23 @@ public class App extends Application {
             directorList.add("New Entry...");
             catList.add("New Entry...");
 
-            if (((EmployeeStore) hook).modifyMovie(is, parsedPrice, trgd, adc)) {
-                editModify.setTextFill(Color.BLUE);
-                editModify.setText("Changes Saved!");
+            if (movie != null) {
+                if (((EmployeeStore) hook).modifyMovie(is, parsedPrice, trgd, adc)) {
+                    editModify.setTextFill(Color.BLUE);
+                    editModify.setText("Changes Saved!");
+                } else {
+                    editModify.setTextFill(Color.RED);
+                    editModify.setText("Error with changes");
+                }
             } else {
-                editModify.setTextFill(Color.RED);
-                editModify.setText("Error with changes");
+                if (((EmployeeStore) hook).addMovie(is, parsedPrice, trgd, adc)) {
+                    editModify.setTextFill(Color.BLUE);
+                    editModify.setText("Movie Saved!");
+                    editModify.setDisable(true);
+                } else {
+                    editModify.setTextFill(Color.RED);
+                    editModify.setText("Error. Movie not added.");
+                }
             }
         });
         grid.add(editModify, 1, 11);
@@ -1052,16 +1155,25 @@ public class App extends Application {
             Button editMovie = new Button("Edit Movie");
             editMovie.setOnAction(actionEvent -> focus.setScene(movieMod(movies.get(finalI))));
 
+            Button delete = new Button("Delete");
+            delete.setOnAction(actionEvent -> {
+                ((EmployeeStore) hook).removeMovie(movies.get(finalI).getId());
+                focus.setScene(browseMovies(hook instanceof EmployeeStore));
+            });
+
             Separator separator = new Separator();
             separator.setMaxWidth(360);
             separator.setMinWidth(360);
             separator.setValignment(VPos.TOP);
 
-            textRes.add(movie, 0, pos, 5, 10);
+            int offset = (hook.loggedUser() instanceof Admin && !removeFlag) ? 5 : 1;
+            textRes.add(movie, 0, pos, offset, 10);
             textRes.add(addToCart, 0, pos + 10, 1, 1);
-            if (hook.loggedUser() instanceof Admin && !removeFlag)
+            if (hook.loggedUser() instanceof Admin && !removeFlag) {
                 textRes.add(editMovie, 1, pos + 10, 1, 1);
-            textRes.add(separator, 0, pos + 11, 5, 1);
+                textRes.add(delete, 2, pos + 10, 1, 1);
+            }
+            textRes.add(separator, 0, pos + 11, offset, 1);
         }
 
         header.setText("Grand Total (Inc. Taxes): $" + String.format("%,.2f", (total * 1.13)));

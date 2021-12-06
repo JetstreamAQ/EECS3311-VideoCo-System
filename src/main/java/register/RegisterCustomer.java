@@ -23,7 +23,7 @@ public class RegisterCustomer extends Register {
      *          - 5: if the password contained no special characters (eg. !@#$%^&*()_+...)
      *          - 6: if not enough information was passed through the arguments (array size too large/small)
      *          - 7: if an invalid postal code was passed (must be a canadian postal code)
-     *          - 8: if an invalid province code was passed or a non-existent province was passed.
+     *          - 8: if an invalid province code was passed or a non-existent province was passed or if the given street is of an incorrect format or not even a street
      *          - 9: if the user to register has their email in the DB already
      *          - 10: if the passed email "baseInfo[3]" is not an email
      */

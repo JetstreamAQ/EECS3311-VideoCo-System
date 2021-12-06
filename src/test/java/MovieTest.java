@@ -47,14 +47,14 @@ public class MovieTest {
         Assert.assertEquals(-1, movie.getId()); //should obviously pass.
         Assert.assertEquals(100, movie.getStock());
         Assert.assertEquals(3.50, movie.getPrice(), 0);
-        Assert.assertEquals("The Crinj Tri-Tachyon", movie.getTitle());
+        Assert.assertEquals("The Crinj", movie.getTitle());
         Assert.assertEquals("2020-04-20", movie.getReleaseDate());
         Assert.assertEquals("Testing", movie.getGenre());
-        Assert.assertEquals("Movie about the crinj Tri-Tachyon Corporation.", movie.getDescription());
+        Assert.assertEquals("Movie about the crinj.", movie.getDescription());
         Assert.assertEquals(3, movie.getActors().size()); //Should only be 3 actors loaded in
-        Assert.assertEquals("Crinj Tri-Tach Employee #21", movie.getActors().get(0));
-        Assert.assertEquals("Crinj Tri-Tach Employee #495", movie.getActors().get(1));
-        Assert.assertEquals("Hegemony Hive Scum :smile:", movie.getActors().get(2));
+        Assert.assertEquals("Crinj #21", movie.getActors().get(0));
+        Assert.assertEquals("Crinj #495", movie.getActors().get(1));
+        Assert.assertEquals(":smile:", movie.getActors().get(2));
         Assert.assertEquals(2, movie.getDirectors().size()); //Should only be 1 director loaded in
         Assert.assertEquals("Some guy; don't worry about it", movie.getDirectors().get(0));
         Assert.assertEquals("[redacted]", movie.getDirectors().get(1));
@@ -206,7 +206,7 @@ public class MovieTest {
 
     @Test
     public void test_get_movie_by_full_description() {
-        ArrayList<Movie> matches = movies.getMovie("Movie about the crinj Tri-Tachyon Corporation.", 3);
+        ArrayList<Movie> matches = movies.getMovie("Movie about the crinj.", 3);
 
         //Should be one matches with the original DB
         Assert.assertEquals(1, matches.size());
@@ -222,7 +222,7 @@ public class MovieTest {
 
     @Test
     public void test_get_movie_by_actors() {
-        ArrayList<Movie> matches = movies.getMovie("Crinj Tri-Tach Employee #495; Gengetsu", 4);
+        ArrayList<Movie> matches = movies.getMovie("Crinj #495; Gengetsu", 4);
 
         //Should be three matches with the original DB
         Assert.assertEquals(3, matches.size());

@@ -199,6 +199,39 @@ public class EmployeeStore extends StoreHook {
     }
 
     /**
+     * A mid-tier hook for MovieDB.getMovie(...)
+     *
+     * @param search the search term(s) to use.  Terms are split up by semi-colons, followed by a space, when
+     *               searching by actors, directors and categories.
+     * @param flag denotes the type of search to perform depending on the passed integers.
+     *             - 0 = title
+     *             - 1 = release date
+     *             - 2 = genre
+     *             - 3 = description
+     *             - 4 = actors
+     *             - 5 = directors
+     *             - 6 = categories
+     * @return an ArrayList containing all the movies which matched the given search string
+     * @throws IllegalArgumentException when flag < 0 OR flag > 6
+     */
+    @Override
+    public ArrayList<Movie> searchMovies(String search, int flag) {
+        ArrayList<Movie> matchingRes = MovieDB.getINSTANCE().getMovie(search, flag);
+
+        if (!(currentUser instanceof Cashier))
+            return matchingRes;
+
+        ArrayList<Movie> filter = new ArrayList<>();
+        Cashier cashier = (Cashier) currentUser;
+        for (Movie m : matchingRes) {
+            if (m.getCategories().contains(cashier.getLocation()))
+                filter.add(m);
+        }
+
+        return filter;
+    }
+
+    /**
      *
      * @param is the movie ID and stock count
      * @param price the price of the movie

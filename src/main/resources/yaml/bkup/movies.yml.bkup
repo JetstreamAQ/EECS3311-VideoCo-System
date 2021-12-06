@@ -2,14 +2,14 @@ movies:
   - id: -1
     stock: 100
     price: 3.50
-    title: "The Crinj Tri-Tachyon"
+    title: "The Crinj"
     releaseDate: "2020-04-20"
     genre: "Testing"
-    description: "Movie about the crinj Tri-Tachyon Corporation."
+    description: "Movie about the crinj."
     actors:
-      - "Crinj Tri-Tach Employee #21"
-      - "Crinj Tri-Tach Employee #495"
-      - "Hegemony Hive Scum :smile:"
+      - "Crinj #21"
+      - "Crinj #495"
+      - ":smile:"
     directors:
       - "Some guy; don't worry about it"
       - "[redacted]"

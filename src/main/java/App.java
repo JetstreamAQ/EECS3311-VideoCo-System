@@ -734,8 +734,11 @@ public class App extends Application {
                     returned = (((Fulfilled) hook.fetchOrder(orderID).getOrderState()).getReturned()) ? " [ORDER RETURNED]" : "";
                 Text orderStatus = new Text("Status: " + hook.fetchOrder(orderID).getState() + returned);
                 OrderState orderState = hook.fetchOrder(orderID).getOrderState();
+                VideoCoSys system = new VideoCoSys();
                 if ((orderState instanceof Fulfilled) && ((Fulfilled) orderState).getReturned())
                     orderStatus.setText("Status: Order Returned");
+                else if ((orderState instanceof Fulfilled) && system.daysSinceBorrowed(((Fulfilled) orderState).getDateArrived()) >= 14)
+                    orderStatus.setText("Status: ORDER OVERDUE! Fee/Day - " + ((((Customer) hook.loggedUser()).getProvince().equals("ON")) ? "$1:00" : "$9.99"));
                 temp.add(orderStatus, 0, 2, 3, 1);
 
                 Text custEmail = new Text("Customer E-Mail: " + hook.fetchOrder(orderID).getEmail());
@@ -783,7 +786,6 @@ public class App extends Application {
                 overdue.setFill(Color.RED);
 
                 //Only displaying notice if the order has been fulfilled, not returned and is overdue
-                VideoCoSys system = new VideoCoSys();
                 Order target = hook.fetchOrder(orderID);
                 boolean orderFulfilled = target.getState().equals("Fulfilled"),
                         orderReturned = orderFulfilled && ((Fulfilled) target.getOrderState()).getReturned();

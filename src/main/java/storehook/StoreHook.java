@@ -147,6 +147,9 @@ public abstract class StoreHook {
         if (MovieDB.getINSTANCE().getMovie(id) == null)
             return false;
 
+        if (MovieDB.getINSTANCE().getMovie(id).getStock() <= 0)
+            return false;
+
         cart.add(MovieDB.getINSTANCE().getMovie(id));
         return true;
     }
@@ -286,7 +289,19 @@ public abstract class StoreHook {
      * @return true if the order was cancelled; false otherwise
      */
     public boolean cancelOrder(long id) {
-        return OrderDB.getINSTANCE().cancelOrder(id);
+        //Check if order exists; if fetch the movie list
+        boolean exists = OrderDB.getINSTANCE().getOrder(id) != null;
+        ArrayList<Integer> idList = null;
+        if (exists)
+            idList = OrderDB.getINSTANCE().getOrder(id).getMovies();
+
+        boolean res = OrderDB.getINSTANCE().cancelOrder(id);
+        if (res) {
+            for (int i : idList)
+                MovieDB.getINSTANCE().setStock(i, MovieDB.getINSTANCE().getMovie(i).getStock() + 1);
+        }
+
+        return res;
     }
 
     /**
@@ -297,7 +312,7 @@ public abstract class StoreHook {
      * @param information array of key information of the order
      * @return true if the order was successfully modified; false otherwise
      */
-    public boolean editOrder(long id, ArrayList<Integer> movies, String[] information) {
+    /*public boolean editOrder(long id, ArrayList<Integer> movies, String[] information) {
         if (information.length != 3)
             return false;
 
@@ -308,7 +323,7 @@ public abstract class StoreHook {
         modOrder.setOrderDate(information[1]);
         modOrder.setState(information[2]);
         return OrderDB.getINSTANCE().modOrder(id, modOrder);
-    }
+    }*/
 
     /**
      * A mid-tier hook for Register objects.

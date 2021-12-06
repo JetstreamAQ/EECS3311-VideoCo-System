@@ -49,7 +49,7 @@ public abstract class Register {
                 uc = upperCase.matcher(password),
                 num = numbers.matcher(password),
                 sc = specChars.matcher(password);
-        if (!(password.length() > 8) || password.contains(" "))
+        if (!(password.length() >= 8) || password.contains(" "))
             return 1;
 
         if (!lc.find())

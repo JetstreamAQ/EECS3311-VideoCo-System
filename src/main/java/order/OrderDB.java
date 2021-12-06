@@ -177,7 +177,7 @@ public class OrderDB {
             orderDB.get(id).setState("Cancelled");
 
         writeYAML();
-        return true;
+        return orderDB.get(id).getState().equals("Cancelled");
     }
 
     /**

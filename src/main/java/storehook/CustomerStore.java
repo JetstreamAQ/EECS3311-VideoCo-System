@@ -87,16 +87,16 @@ public class CustomerStore extends StoreHook {
      *
      * @return returns the amount of money owed by the customer
      */
-    public double getAmtDue() {
+    /*public double getAmtDue() {
         return ((Customer) super.currentUser).getAmtOwed();
-    }
+    }*/
 
     /**
      * A mid-tier hook for Customer.getLoyaltyPoints()
      *
      * @return returns the number of loyalty points owned by the customer
      */
-    public int getLoyaltyPoints() {
+    /*public int getLoyaltyPoints() {
         return ((Customer) super.currentUser).getLoyaltyPoints();
-    }
+    }*/
 }

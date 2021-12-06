@@ -1,6 +1,15 @@
 !!user.Users
 users:
   - !!user.data.Admin
+    id: -1
+    FName: "VideoCo"
+    LName: "System"
+    username: "SystemUser"
+    email: "VideoCoSystem@VideoCo.org"
+    password: "test"
+    timeZone: "GMT-7:00"
+
+  - !!user.data.Admin
     id: 0
     FName: "Samuel"
     LName: "Rodriguez"
@@ -73,4 +82,4 @@ users:
     province: "NB"
     amtOwed: 0.0
     loyaltyPoints: 0
-    custOrders: [ ]
+    custOrders: [-40]

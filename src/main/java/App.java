@@ -21,6 +21,7 @@ import order.state.OrderState;
 import storehook.CustomerStore;
 import storehook.EmployeeStore;
 import storehook.StoreHook;
+import system.VideoCoSys;
 import user.data.*;
 
 import java.util.*;
@@ -372,7 +373,13 @@ public class App extends Application {
         }
 
         /*System Exclusive Stuff*/
-
+        Button performChecks = new Button("Perform Check");
+        performChecks.setOnAction(actionEvent -> {
+            VideoCoSys system = new VideoCoSys();
+            system.performChecks();
+        });
+        if (hook.loggedUser().getEmail().equalsIgnoreCase("VideoCoSystem@VideoCo.org"))
+            grid.add(performChecks, 0, 7);
 
         return new Scene(grid, 400, 720);
     }
@@ -452,6 +459,8 @@ public class App extends Application {
         TextField cityTownField = new TextField();
         Text province = new Text("Province:");
         ComboBox provinceMenu = new ComboBox(provinces);
+        double due = (user instanceof Customer) ? ((Customer) user).getAmtOwed() : 0.0;
+        Text amtOwed = new Text("Amount Owed: $" + String.format("%,.2f", due)+ "\nThis amount will automatically be paid for in your next purchase.");
 
         /*ADMIN*/
         Text timeZone = new Text("Time Zone (GMT...):");
@@ -499,6 +508,8 @@ public class App extends Application {
 
             grid.add(province, 0, ++vertOffset);
             grid.add(provinceMenu, 1, vertOffset);
+
+            grid.add(amtOwed, 0, ++vertOffset, 3, 1);
         } else if (user instanceof Admin) {
             type = 1;
             tzField.setText(((Admin) user).getTimeZone());
@@ -608,7 +619,6 @@ public class App extends Application {
         grid.add(save, 1, vertOffset);
 
         return grid;
-        //return new Scene(grid, 1280, 720);
     }
 
     private Scene viewUserList() {
@@ -691,10 +701,13 @@ public class App extends Application {
             ArrayList<Long> orderIds = ((CustomerStore) hook).fetchCustOrders();
             for (Long l : orderIds)
                 ids.add("Order #" + l);
-        } else if (hook instanceof EmployeeStore && (hook.loggedUser() instanceof Admin || hook.loggedUser() instanceof InventoryOperator || hook.loggedUser() instanceof WarehouseShippingTeam)) {
+        } else if (hook instanceof EmployeeStore && (hook.loggedUser() instanceof Admin || hook.loggedUser() instanceof InventoryOperator)) {
             ArrayList<Order> admin = ((EmployeeStore) hook).viewOrders();
             for (Order o : admin)
                 ids.add("Order #" + o.getOrderID());
+        } else if (hook.loggedUser() instanceof WarehouseShippingTeam) {
+            for (Long l : ((EmployeeStore) hook).ordersToBeShipped())
+                ids.add("Order #" + l);
         }
         ListView<String> orders = new ListView<>(ids);
         orders.setPrefSize(300, 500);
@@ -716,7 +729,10 @@ public class App extends Application {
                 Text orderDate = new Text("Date: " + hook.fetchOrder(orderID).getOrderDate());
                 temp.add(orderDate, 0, 1, 3, 1);
 
-                Text orderStatus = new Text("Status: " + hook.fetchOrder(orderID).getState());
+                String returned = "";
+                if (hook.fetchOrder(orderID).getOrderState() instanceof Fulfilled)
+                    returned = (((Fulfilled) hook.fetchOrder(orderID).getOrderState()).getReturned()) ? " [ORDER RETURNED]" : "";
+                Text orderStatus = new Text("Status: " + hook.fetchOrder(orderID).getState() + returned);
                 OrderState orderState = hook.fetchOrder(orderID).getOrderState();
                 if ((orderState instanceof Fulfilled) && ((Fulfilled) orderState).getReturned())
                     orderStatus.setText("Status: Order Returned");
@@ -739,8 +755,12 @@ public class App extends Application {
                 });
                 temp.add(cancelButton, 0, 5, 1, 1);
 
-                Button editButton = new Button("Edit Order");
+                Button editButton = new Button("Advance Order");
                 editButton.setDisable(orderState instanceof Fulfilled && ((Fulfilled) orderState).getReturned());
+                editButton.setOnAction(actionEvent2 -> {
+                    ((EmployeeStore) hook).progOrder(orderID);
+                    orderStatus.setText("Status: " + hook.fetchOrder(orderID).getState());
+                });
                 if (hook instanceof EmployeeStore)
                     temp.add(editButton, 1, 5, 1, 1);
 
@@ -757,6 +777,18 @@ public class App extends Application {
                     temp.add(movies.get(i), 0, offset, 3, 1);
                 /*DISPLAYING MOVIE INFO END*/
                 orderDetails.setContent(temp);
+
+                //Overdue notice
+                Text overdue = new Text();
+                overdue.setFill(Color.RED);
+
+                //Only displaying notice if the order has been fulfilled, not returned and is overdue
+                VideoCoSys system = new VideoCoSys();
+                Order target = hook.fetchOrder(orderID);
+                boolean orderFulfilled = target.getState().equals("Fulfilled"),
+                        orderReturned = orderFulfilled && ((Fulfilled) target.getOrderState()).getReturned();
+                if (orderReturned && system.daysSinceBorrowed(hook.fetchOrder(orderID).getOrderDate()) >= 14)
+                    overdue.setText("This order is overdue.");
             }
         });
         grid.add(seeOrder,0, 2);
@@ -1182,7 +1214,7 @@ public class App extends Application {
     }
 
     /**
-     * @return GridPane for a payment window TODO: ALLOW INVENTORY OPERATORS/ADMINS TO USE THIS
+     * @return GridPane for a payment window
      */
     private GridPane paymentWindow() {
         GridPane payment = createGrid();
@@ -1382,9 +1414,9 @@ public class App extends Application {
                 targetCust = hook.loggedUser();
             }
 
-            boolean paymentSucc = (lpToggle.isSelected()) ? hook.pointPayment(targetCust) : hook.makePayment(targetCust, 0.0, billingInfo);
+            boolean paymentSucc = (lpToggle.isSelected()) ? hook.pointPayment(targetCust) : hook.makePayment(targetCust, Double.MAX_VALUE, billingInfo);
 
-            if (paymentSucc) {
+            if (paymentSucc && hook.getCart().size() != 0) {
                 try {
                     long orderID = hook.makeOrder(targetCust, hook.getCart());
                     result.setFill(Color.BLUE);
@@ -1398,6 +1430,9 @@ public class App extends Application {
                     result.setText("One or more of your items are now out of stock.");
                     placeOrder.setDisable(true);
                 }
+            } else if (paymentSucc && hook.getCart().size() == 0) {
+                result.setFill(Color.BLUE);
+                result.setText("Your overdue fees have been paid off.");
             } else {
                 result.setFill(Color.RED);
                 result.setText((lpToggle.isSelected()) ? "You don't have enough loyalty points!" : "Error with payment.\nPlease check that the provided information is correct.\nEnsure that all information is formatted correctly.\nEg. Postal Codes are of the form \"A1A 1A1\".");

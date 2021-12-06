@@ -82,4 +82,4 @@ users:
     province: "NB"
     amtOwed: 0.0
     loyaltyPoints: 0
-    custOrders: [ ]
+    custOrders: [-40]

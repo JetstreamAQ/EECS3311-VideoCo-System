@@ -223,8 +223,9 @@ public abstract class StoreHook {
         //Deducting the payment off of what the customer owes
         if (user instanceof Customer) {
             double currentOwed = ((Customer) user).getAmtOwed(),
-                    newAmt = (currentOwed - amt > 0) ? currentOwed - amt : 0.0;
+                   newAmt = (currentOwed - amt >= 0) ? currentOwed - amt : 0.0;
             ((Customer) user).setAmtOwed(newAmt);
+            DBUser.getINSTANCE().modifyUser(user.getEmail(), user);
         }
         return true;
     }
@@ -268,6 +269,9 @@ public abstract class StoreHook {
         for (Order o : OrderDB.getINSTANCE().getOrders()) {
             if (Long.toString(o.getOrderID()).equals(search) || o.getEmail().equalsIgnoreCase(search) || o.getOrderDate().equals(search) || search.equals(""))
                 temp.add(o);
+
+            if (currentUser instanceof WarehouseShippingTeam && !o.getState().equals("Await Shipment"))
+                temp.remove(o);
         }
 
         //Filtering out via email search

@@ -236,7 +236,7 @@ public class UserTest {
         Assert.assertTrue(remove);
     }
 
-    @Test //TODO: Consider the random testing you do here
+    @Test
     public void test_register_employee() {
         Register reg = new RegisterEmployee();
         String[] basicInfo = {

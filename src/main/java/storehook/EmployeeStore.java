@@ -100,6 +100,24 @@ public class EmployeeStore extends StoreHook {
      */
     public ArrayList<Order> viewOrders() {return OrderDB.getINSTANCE().getOrders();}
 
+    public ArrayList<Long> ordersToBeShipped() {
+        ArrayList<Long> temp = new ArrayList<>();
+        for (Order o : OrderDB.getINSTANCE().getOrders()) {
+            if (o.getState().equals("Await Shipment"))
+                temp.add(o.getOrderID());
+        }
+
+        return temp;
+    }
+
+    /**
+     * a mid-tier hook for OrderDB.progOrderStatus(...)
+     *
+     * @param orderID the order ID of the order to progress the status of
+     * @return a string representation of the orders status after execution
+     */
+    public String progOrder(long orderID) {return OrderDB.getINSTANCE().progOrderStatus(orderID);}
+
     /**
      * A mid-tier hook for MovieDB.addMovie(...);
      *

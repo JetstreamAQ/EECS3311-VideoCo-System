@@ -17,9 +17,11 @@ import java.util.*;
 public class VideoCoSys {
     public VideoCoSys() {}
 
-    private void performChecks() {
+    public void performChecks() {
         ArrayList<User> users = DBUser.getINSTANCE().getUsers();
         OrderDB orderDB = OrderDB.getINSTANCE();
+
+        System.out.println("[SYSTEM]: Performing Checks");
 
         /*
          * ##################################################################################
@@ -29,8 +31,16 @@ public class VideoCoSys {
          * ~ Order State updating BEGIN ~
          */
         for (Order o : orderDB.getOrders()) {
-            if (o.getState().equals("Shipped"))
-                o.setState("Fulfilled");
+            System.out.println("[SYSTEM]: Checking order state on order #" + o.getOrderID());
+            if (o.getState().equals("Shipped")) {
+                o.getOrderState().stateAction(false);
+                orderDB.modOrder(o.getOrderID(), o);
+                System.out.println("[SYSTEM]: Order #" + o.getOrderID() + " has arrived at the customer's location.");
+            } else if (o.getState().equals("Await Payment")) {
+                o.getOrderState().stateAction(false);
+                orderDB.modOrder(o.getOrderID(), o);
+                System.out.println("[SYSTEM]: Payment recieved for order #" + o.getOrderID());
+            }
         }
         /*##### ORDER STATE UPDATING END #####*/
 
@@ -41,6 +51,7 @@ public class VideoCoSys {
         for (User u : users) {
             if (u instanceof Customer) {
                 Customer cust = (Customer) u;
+                System.out.println("[SYSTEM]: Checking orders for " + u.getEmail());
                 for (long id : cust.getCustOrders()) {
                     OrderState focus = orderDB.getOrder(id).getOrderState();
                     if (focus.toString().equals("Fulfilled") && !((Fulfilled) focus).getReturned())
@@ -59,35 +70,10 @@ public class VideoCoSys {
                 custFocus.setAmtOwed(custFocus.getAmtOwed() + lateFee);
 
                 DBUser.getINSTANCE().modifyUser(custFocus.getEmail(), custFocus);
+                System.out.println("[SYSTEM]: " + custFocus.getEmail() + " - Order #" + orderDB.getOrder(id).getOrderID() + " overdue! Customer has been charged $" + lateFee);
             }
         }
         /*##### CHECKING FOR OVERDUE RETURNS END #####*/
-    }
-
-    /**
-     * A mid-tier hook for RegisterEmployee.registerUser(...) for only the System to use in the creation of Admin
-     * accounts.
-     *
-     * @param baseInfo An array of strings containing the basic information of a User; properties of User
-     * @param additionalInfo An array of string containing information to the respective data type of the user
-     * @return  Please refer to the return integers for RegisterEmployee.registerUser(...)
-     */
-    public int createAdmin(String[] baseInfo, String[] additionalInfo) {
-        RegisterEmployee reg = new RegisterEmployee();
-        return reg.registerUser(baseInfo, additionalInfo, "Admin");
-    }
-
-    /**
-     * A mid-tier hook for DBUser.removeUser(...) configured to only allow the removal of Admin user accounts.
-     *
-     * @param email the email of the admin account to remove
-     * @return true if the admin account was removed; false otherwise (ie. no account with that email exists)
-     */
-    public boolean removeAdmin(String email) {
-        if (DBUser.getINSTANCE().getUser(email) != null && DBUser.getINSTANCE().getUser(email) instanceof Admin)
-            return DBUser.getINSTANCE().removeUser(email);
-
-        return false;
     }
 
     /**
@@ -96,7 +82,7 @@ public class VideoCoSys {
      * @param date The date to compate to.
      * @return the days passed since the passed date.
      */
-    private long daysSinceBorrowed(String date) {
+    public long daysSinceBorrowed(String date) {
         //Formatter for converting the string date into a form we can use to calculate the delta
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
 

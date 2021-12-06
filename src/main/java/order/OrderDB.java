@@ -100,7 +100,6 @@ public class OrderDB {
         if (orderDB.containsValue(order))
             return -1;
 
-        //TODO: write up test which covers this block here
         if (orderDB.containsKey(order.getOrderID())) {
             long maxId = 0;
             ArrayList<Long> usedIDs = new ArrayList<>();
@@ -152,6 +151,16 @@ public class OrderDB {
         orderArray.addAll(orderDB.values());
         writeYAML();
         return true;
+    }
+
+    /**
+     * @param orderID the order ID to update the state of
+     * @return String representation of the current order state
+     */
+    public String progOrderStatus(long orderID) {
+        orderDB.get(orderID).getOrderState().stateAction(false);
+        writeYAML();
+        return orderDB.get(orderID).getState();
     }
 
     /**

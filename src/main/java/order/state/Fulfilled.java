@@ -18,6 +18,12 @@ public class Fulfilled extends OrderState {
     }
 
     @Override
+    public void stateAction(boolean cancel) {
+        if (!returned)
+            returned = true;
+    }
+
+    @Override
     public String toString() {
         return "Fulfilled";
     }

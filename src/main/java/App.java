@@ -65,7 +65,7 @@ public class App extends Application {
         grid.add(customerLogin, 1, 4);
 
         Button register = new Button("Register");
-        register.setOnAction(actionEvent -> focus.setScene(register(0, true)));
+        register.setOnAction(actionEvent -> focus.setScene(register(0, false)));
         HBox regBox = new HBox(10);
         regBox.setAlignment(Pos.CENTER);
         regBox.getChildren().add(register);

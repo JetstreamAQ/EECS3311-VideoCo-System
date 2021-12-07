@@ -1159,6 +1159,12 @@ public class App extends Application {
         if (removeFlag)
             textRes.add(header, 0, 0, 3, 1);
 
+        if (!removeFlag && movies.size() <= 0) {
+            Text msg = new Text("No movies found.");
+            msg.setFill(Color.RED);
+            textRes.add(msg, 1, 0);
+        }
+
         double total = 0.0;
         for (int i = 0, pos = 1; i < movies.size(); i++, pos += 12) {
             Text movie = new Text(movies.get(i).toString());

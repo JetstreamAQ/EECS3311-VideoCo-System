@@ -111,7 +111,10 @@ public abstract class StoreHook {
      *          7 - passed extension number is invalid
      */
     public int editUser(String email, String[] baseInfo, String[] additionalInfo) {
-        return ModifyUserDB.modify(email, baseInfo, additionalInfo);
+        int res = ModifyUserDB.modify(email, baseInfo, additionalInfo);
+        if (res == 0 && currentUser.getEmail().equalsIgnoreCase(email))
+            currentUser = DBUser.getINSTANCE().getUser(email);
+        return res;
     }
 
     /**

@@ -735,10 +735,15 @@ public class App extends Application {
                 Text orderStatus = new Text("Status: " + hook.fetchOrder(orderID).getState() + returned);
                 OrderState orderState = hook.fetchOrder(orderID).getOrderState();
                 VideoCoSys system = new VideoCoSys();
-                if ((orderState instanceof Fulfilled) && ((Fulfilled) orderState).getReturned())
+                if ((orderState instanceof Fulfilled) && ((Fulfilled) orderState).getReturned()) {
                     orderStatus.setText("Status: Order Returned");
-                else if ((orderState instanceof Fulfilled) && system.daysSinceBorrowed(((Fulfilled) orderState).getDateArrived()) >= 14)
-                    orderStatus.setText("Status: ORDER OVERDUE! Fee/Day - " + ((((Customer) hook.loggedUser()).getProvince().equals("ON")) ? "$1:00" : "$9.99"));
+                } else if ((orderState instanceof Fulfilled) && system.daysSinceBorrowed(((Fulfilled) orderState).getDateArrived()) >= 14) {
+                    Order focus = hook.fetchOrder(orderID);
+                    User target = (hook instanceof EmployeeStore) ? ((EmployeeStore) hook).fetchUser(focus.getEmail()) : hook.loggedUser();
+
+                    if (target instanceof Customer)
+                        orderStatus.setText("Status: ORDER OVERDUE! Fee/Day - " + ((((Customer) target).getProvince().equals("ON")) ? "$1:00" : "$9.99"));
+                }
                 temp.add(orderStatus, 0, 2, 3, 1);
 
                 Text custEmail = new Text("Customer E-Mail: " + hook.fetchOrder(orderID).getEmail());
